@@ -1,0 +1,116 @@
+---
+## Introduction to R
+
+A great resource  is R for Data Science that is freely available online [here](https://r4ds.had.co.nz/) - I heavily rely on this in the lecture. And another good option YaRrr! the Pirates Guide to R is [here](https://bookdown.org/ndphillips/YaRrr/)
+
+### CRAN & Mirrors 
+R codes are stored in a series of servers across the world through Comprehensive R Archive Network (CRAN) - all of R related information is stored separately in each server (with the same exact information)
+
+So, likely, the first thing you'll need to do is to use a mirror near you - a list of mirrors can be found here
+
+Once you set it, it's done. No need to go back to this step unless for some reason you want to pull from a different server (maybe if you move, one that is closer to you)
+
+```{r}
+options("repos" = c(CRAN = "https://mirror.las.iastate.edu/CRAN/"))
+```
+
+We call packages through "library" Such as:
+
+"library(package_name)"
+
+You have to call the package that you want in your notebook.
+In a moment, we're going to start working with tidyverse and dplyr.
+But, just to see the importing of a package, let's try it here.
+
+```{r}
+library(plm)
+```
+
+If you want o install a package you can do so, like this:
+
+`install.packages(dplyr)'
+
+OR you can install through the R Studio browser - I'll show you that now.  
+
+### Basic Commands
+
+Before we get to working with data, let's do a quick over view of some basic commands
+
+To change the working directory we use:
+
+setwd(/your/working/directory/)
+
+to find out where you are in your working directory we use:
+
+`getwd()'
+
+```{r}
+getwd()
+```
+
+```{r}
+setwd('/Users/mkaltenberg/Dropbox (Personal)/Pace/ECO585/R notebooks')
+```
+
+### Assignments
+
+In R documentation they almost always use `<-'but `=' also works.
+
+```{r}
+x <- 'hi there!'
+x
+y= 'bye'
+
+```
+
+You can change a variable name just as easily be reassigning the variable name.
+
+```{r}
+(y <- seq(0, 10, 2))
+```
+
+### Import/Export Data
+
+To read a csv file you use
+
+read.csv(path_to_csv_file)
+
+To save a csv file you use write.csv(df, path_to_csv_file)
+
+```{r}
+setwd('/Users/mkaltenberg/Dropbox (Personal)/Pace/ECO585/R notebooks/')
+birthweight <- read.csv('birthweight_data_trial.csv')
+```
+
+Ok, now you. Go onto classes and download the file and import into R Studio now. If you have an error or other issues, share your screen and I can help you.
+
+Exporting data is also easy: 
+```{r}
+write.csv(birthweight, 'birthweight_2.csv')
+```
+
+### Help function
+
+you can always ask for documentation, but that function is: help()
+
+```{r}
+help('dplyr')
+help('read.csv')
+```
+For packages, there is also a summary about the package and what it does with vignette
+
+vignette('dplyr')
+
+### Removing objects
+
+Objects can clog up our RAM, especially if they are large datafiles. If you want to remove an object the function is: rm()
+
+```{r}
+rm(x,y)
+```
+
+You can also removing EVERYTHING in your environment with: rm(list = ls())
+
+Just remember that it will delete everything and you'd have to import all of your data again
+
+

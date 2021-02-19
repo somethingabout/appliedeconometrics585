@@ -1,0 +1,375 @@
+---
+title: "OLS Basics"
+output: html_notebook
+---
+A good reference on basic econometrics with R can be found on [this](https://www.econometrics-with-r.org/index.html) website, where you can also do some practice exercises with R directly.
+
+We'll be importing excel datasets, so will need to install a package to do so:
+
+```{r}
+#install.packages("xlsx")
+```
+
+Now let's load the library and import the dataset
+```{r}
+library(xlsx)
+ceodata <- read.table("/Users/mkaltenberg/Dropbox (Personal)/Pace/ECO585/R notebooks/Lecture 2/textfiles/ceosal1.raw")
+```
+Clean up the data a bit (linking the data descriptive file within our dataset)
+```{r}
+library(tibble)
+library("dplyr")
+ceosalary<- as_tibble(ceodata)
+
+ceosalary <- ceosalary %>% 
+  rename(
+    salary = V1,
+    pcsalary = V2,
+    sales = V3,
+    roe =V4,
+    pcroe = V5,
+    ros = V6,
+    indus = V7,
+    finance = V8,
+    consprod = V9,
+    utility = V10,
+    lsalary = V11,
+    lsales = V12
+    )
+```
+Let's estimate a simple regression:
+
+\begin{gather*}\widehat{s a l a r y} =\beta_0 +\beta_1\text{}r o e \end{gather*}
+
+where annual CEO salary is in thousands of dollars and the return on equity is a percent.
+
+Let's run that regression in R:
+```{r}
+
+roe_reg <- lm(salary ~ roe, data = ceosalary)
+summary_roe <-summary(roe_reg)
+summary_roe
+```
+
+How do you interpret this coefficient?
+
+A one percentage point increase in $r o e$ increases predicted salary by $18.501$, or $18,501
+
+Remember that we are trying to understand differences in one unit. A change in one unity in roe is percentage points. Percent change is a ratio - it measures a rate of change. Take this example, the percent of people on poverty in the USA in 2015 was 13.5% and in 2020 it is 11.3%. The the poverty rate between 2015 and 2020 is -2.2 percentage points.  However, the percent change of poverty between 2015 and 2020 is -12.6% ($\frac{13.5-11.3}{13.5}$). The poverty rate decreased by 12.6%. Percent is a number expressed as a fraction of 100. So, the percent of people in poverty is a reflection of $\frac{N. Poverty}{Tot. Population}$.
+
+Take this example: 
+
+What if we measure $r o e$ as a decimal, rather than a percent? Define 
+
+\begin{equation*}r o e d e c =r o e/100
+\end{equation*}
+
+What will happen to the intercept, slope, and $R^{2}$ when we regress 
+
+\begin{equation*}s a l a r y\quad \text{on}\quad r o e d e c\text{?}
+\end{equation*}
+
+Nothing should happen to the intercept: $r o e d e c =0$ is the same as $r o e =0$. But the slope will increase by 100. The goodness-of-fit should not change, and it does not.
+
+```{r}
+ceosalary <- ceosalary %>%
+  mutate(roedec= roe/100)
+
+roedec<-lm(salary ~ roedec, data =ceosalary)
+
+roedec_sum <- summary(roedec)
+roedec_sum
+```
+Now a one percentage point change in $r o e$ is the same as $ \Delta r o e d e c =.01$, and so we get the same effect as before.
+
+What if we measure salary in dollars, rather than thousands of dollars? 
+
+Both the intercept and slope get multiplied by 1,000
+
+### Using a Natural Log
+#### lin-log
+ We can approximate percentage changes using the natural log 
+
+ Now let the dependent variable be $\log  (w a g e)$: 
+
+\begin{equation*}\log  (salary) =\beta _{0} +\beta _{1} roe +u
+\end{equation*}Holding $u$ fixed, 
+
+\begin{equation*} \Delta \log  (salary) =\beta _{1}  \Delta roe
+\end{equation*}so 
+
+\begin{equation*}\beta _{1} =\frac{ \Delta \log  (salary)}{ \Delta roe}
+\end{equation*}\par\pagebreak\relax 
+
+
+ Useful result from calculus: 
+
+\begin{equation*}100 \cdot  \Delta \log  (salary)  \approx  \%  \Delta roe
+\end{equation*}
+
+This means when $\log  (salary) =\beta _{0} +\beta _{1} roe +u$, we have a simple interpretation of $\beta _{1}$: 
+
+\begin{equation*}100 \beta _{1}  \approx  \%  \Delta salary\text{when} \Delta roe =1
+\end{equation*}
+
+Why, you ask, is this $100\beta_1$? Well, *technically* it's not actually 100%. It's a rule of thumb we use. We treat logs as an approximate percent change. 
+If we set $\delta = 1$ for a unit change:
+
+\begin{equation*}E[lnY_0] = \beta_0 +\beta_1 X\end{equation*}
+\begin{equation*}E[lnY_0] = \beta_0 +\beta_1(X+1)\end{equation*}
+\begin{equation*}E[lnY_0]-E[lnY_0] = \beta_1(X+1) -\beta_1X\end{equation*}
+\begin{equation*}E[lnY_1]-E[lnY_0] = \beta_1\end{equation*}
+
+When you multiply $\beta_1$ by 100, the approximation is $E[lnY_1]-E[lnY_0] \approx \frac{E[Y_1]-E[Y_0]}{E[Y_0]}$. For simplicity, let's just drop the expectations and treat it as if there is no variance in $Y_1$ and $Y_2$. Using log-rules, $lnY_1-lnY_2 = ln(\frac{Y_2}{Y_1}) = ln(\frac{Y_1}{Y_1} + \frac{Y_2-Y_1}{Y_1}) = ln(1+\frac{\Delta Y}{Y_1})$ This last part, $\frac{\Delta Y}{Y_1})$ is nothing else but the percent chang in Y divided by 100.
+
+So, we get
+\begin{equation}
+ln(1|\frac{\Delta}{Y_1}=\beta)
+\end{equation}
+
+We can exponentiate both sides and see the approximation:
+$\frac{\Delta y}{y_1} = e^\beta-1 \approx \beta$ 
+
+This approximation comes from a k-th order Taylor series expansion of $e^\beta$ around zero (technically, Maclaurin series):
+
+\begin{equation}
+e^\beta \approx P_k = 1 + \beta+ \frac{\beta^2}{2!}+ \frac{\beta^3}{3!}+ \dots
+\end{equation}
+
+We only use hte linear approximation (and disregard the terms from the quadratic on wards), it will be more accurate the smalle $\beta$ is. This is fine for small changes, but you may want to report $100*(e^\beta -1) instead$:
+
+![Bias in percent change approximation](bias_pctchange.png)
+
+Note: A Taylor series expansion of any function is an infinite polynomial approximation of that function about a certain point. The more higher order terms we use, the more closely we approximate the original function further away from the point.
+
+
+```{r}
+loglin <- lm(log(salary) ~ roe, data = ceosalary)
+sum_loglin <- summary(loglin)
+sum_loglin
+```
+If we do not multiply by 100, we have the decimal version (the proprotionate change). 
+
+ This measure is free of units of measurement
+of wage (currency, price level).\par\pagebreak\relax 
+
+ Warning: This $R$-squared is not directly comparable to the $R$-squared when $salary$ is the dependent variable. The total variation (SSTs) in $salary_{i}$ and $l salary_{i}$ that we must explain are completely different. 
+
+#### Log-log
+ We can use the log on both sides of the equation to get constant elasticity models. For example, if 
+
+\begin{equation*}\log  (s a l a r y) =\beta _{0} +\beta _{1} \log  (s a l e s) +u
+\end{equation*}then 
+
+\begin{equation*}\beta _{1} \approx \frac{ \% \Delta s a l a r y}{ \% \Delta s a l e s}
+\end{equation*}
+
+The elasticity is free of units of $s a l a r y$ and $s a l e s$. 
+
+A constant elasticity model for salary and sales makes more sense than a constant dollar effect.
+
+The estimated elasticity of CEO salary with respect to firms sales is about .25 or a 1% change in sales is associated with a .257% increase in roe (To interpret this elasticity, we do not need to know $s a l a r y$ is in thousands of dollars while $s a l e s$ is in millions.) 
+
+```{r}
+loglog <- lm(log(salary) ~ log(sales), data = ceosalary)
+sum_loglog <- summary(loglog)
+sum_loglog
+```
+How do you interpret the coefficient of sales?
+
+A 10 percent increase in sales is associated with (causes?) about a 
+
+\begin{equation*}.257 (10) =2.57
+\end{equation*}percent increase in salary. 
+
+As an exercise, make sure the elasticity does not change if sales is measured in, say, billions. 
+ 
+So, define $l s a l e s b i l =\log  (s a l e s/1000)$.) The intercept will change.
+
+How do you interpret the intercept?
+Well, it's trickier to interpret the log directly. The intercept is not measuring a change in values - so it's not a percent change (there is no difference in logs). It's much easier just to exponentiate the value. So, to interpret the intercept, we can exponentiate like so:
+
+```{r}
+exp(loglin$coefficients)
+```
+In this case, the intercept is 822.35 million dollars.
+
+
+A handy reminder of interpreting coefficients is:
+
+|    Model  |Dep. Var | Indep. Var | $\beta_1$|
+|-----------|---------|------------|----------|
+|Level-Level| y       |x           |$\Delta y=\beta_1 \Delta x$
+| Level-Log | y       |log(x)      |$\Delta y=(\beta_1/100\%) \Delta x$
+| Log-Level |log(y)   |x           |$\%\Delta y=(100\beta_1) \Delta x$
+|  Log-Log  |log(y)   |log(x)      |$\Delta \%y=\beta_1\Delta x$
+
+The possibility of using the natural log to get nonlinear relationships between $y$ and $x$ raises a question: What do we mean now by ``linear'' regression? 
+
+The answer is that the model is linear in the \textit{parameters}, $\beta _{0}$ and $\beta _{1}$. We can use any transformations of the dependent and independent to get interesting interpretations for the parameters. 
+
+# OLS properties
+Let's see some of the OLS properties in action
+
+1) The sum of residuals will equal to 0
+Let's see it:
+```{r}
+u <- resid(lm(salary ~ roedec, data =ceosalary))
+sum(u)
+```
+There are some rounding errors in computation, but the sum is close to 0
+
+2) We know that $\bar{y}=\bar{\hat{y}}$
+
+Let's show it:
+```{r}
+yhat <- predict(lm(salary ~ roedec, data =ceosalary))
+
+mean(ceosalary$salary)
+mean(yhat)
+```
+
+The sample covariance (and therefore the sample correlation) between the explanatory variables and the residuals is always zero:
+
+```{r}
+sum(ceosalary$roedec*u)
+```
+Again, there are some rounding errors in computation, but the sum is close to 0
+
+
+Because the $\hat{y}_i$ are linear functions of the xi, the fitted values and residuals are uncorrelated, too:
+```{r}
+sum(yhat*u)
+```
+Again, there are some rounding errors in computation, but the sum is close to 0
+
+3) The point ($\hat{x}, \hat{y}$) is always on the OLS regression line. That is, if we plug in the average for x, we predict the sample average for y:
+$\bar{y} = \beta_0 + \beta_1\bar{x}̄$
+
+```{r}
+mean(ceosalary$roedec)
+mean(ceosalary$salary)
+```
+We can plot our regression 
+
+
+And we can graph our residuals like this:
+```{r}
+plot(salary ~ roedec, data=ceosalary)
+abline(lm(salary ~ roedec, data =ceosalary))
+points(mean(ceosalary$roedec), mean(ceosalary$salary), col = "red")
+```
+
+## Simple Linear Regression Assumptions
+
+Recall that for the Simple Linear Regression the assumptions are:
+  
+  1. Linear in parameters. x and u are random, and thus, so is y.
+  
+  2. Random sample size of n
+  
+  3. Sample Variation in the Explanatory Variable (you need to have variance in X - it can't be a )
+  
+  4. Zero Conditional Mean (error term has zero mean given any value of the explanatory variable) $E(u|x)=0$ for all x
+  
+  5. Homoskedasticity or Constant Variance (error term has the same variance given any value of the explanatory variable x, $Var(u|x) = \delta^2 > 0$ for all x
+  
+
+### Unbiasedness of Beta 
+The key assumption that you must think about the most is if assumption 4 is met. This assumption is often broken, and as a consequence will result in biasedness in your $\beta$ parameters. 
+
+We can do an experiment to see if $\beta_0$ and $\beta_1$ are unbiased when assumptions 1-4 hold. In truth, unbiasedness often results when assumption 4 is broken.
+
+We will randomly draw from a normal distribution for u and x. Then we will create a y variable as a combination of x and u, specifically $y=3+2x+u$.This way will know that $\beta_0$ should be 3 and $\beta_1$ should be 2. We'll repeat this process multiple times and will see that the estimates should be close to our expected values.
+
+```{r}
+x = 3*rnorm(250)
+u = 6*rnorm(250)
+y = 3+2*x+u
+lm(y~x)
+
+u = 6*rnorm(250)
+y = 3+2*x+u
+lm(y~x)
+
+u = 6*rnorm(250)
+y = 3+2*x+u
+lm(y~x)
+
+u = 6*rnorm(250)
+y = 3+2*x+u
+lm(y~x)
+
+u = 6*rnorm(250)
+y = 3+2*x+u
+lm(y~x)
+```
+You can see that the values are note exact, but they are close to expected values $\beta_1=2, \beta_0=3$. If we average these values after many random samples, we should get the true population estimate.
+
+We won't ever know the true population value, but we hope that our sample is “typical” and produces a slope estimate close to $\beta_1$, but we can never know. 
+
+Now, let's take a practical example of Biasedness.
+
+There is a package that contains all of Wooldridge's data, so let's make our life easy:
+```{r}
+install.packages("wooldridge")
+```
+
+```{r}
+library(wooldridge)
+```
+
+Load in the education data (you can load in R data from 
+```{r}
+wagedata <-data("wage1")
+biased <- lm(lwage ~ educ+tenure, data= wage1)
+summary(biased)
+
+less_biased <-lm(lwage ~ educ+exper, data= wage1)
+summary(less_biased)
+```
+
+We can see that the coefficient of education changes a lot when we compare our regression with (.0865) and without experience (.097).  It increases by 12% - meaning that without the inclusion of experience, education was downwardly biased. 
+
+## Multiple Linear Regression Assumptions
+
+The Multiple Linear Regressions assumptions are:
+
+1. $y =\beta_0+\beta_1x_1+\beta_2x_2+\dots+\beta_kx_k+u$
+
+2. Random sampling from the population
+
+3. No perfect collinearity in the sample
+
+4. Zero Conditional Mean ($E(u|x_1,x_2,...,x_k) = 0$ for all $(x_1,\dots,x_k)$)
+(If u is correlated with any of the $x_j$, 4 is violated.)
+
+5. Homoskedasticity $Var(y|x_1, x_2, . . . , x_k) = Var(u|x_1, x_2, . . . , x_k) = \delta^2$
+
+They are also called the Gauss-Markov assumptions. When these assumptions hold they are **BLUE** - the Best Linear Unbiased Estimator
+
+### Perfect Collinearity (Assumption 3)
+Assumptions 1,2, 4, and 5 are the same as in the simple linear model. The new assumption is about perfect collinearity. When estimating OLS, perfect linear combinations can't be distinguished. In other words, we can't distinguish the estimates from the two variables and there are infinite possible answers. 
+
+This seems obvious in cases where we have a set of categorical dummies. The solution to this issue is to drop a variable, and as consequence, our interpretation changes. We interpret a set of dummies relative to the one we dropped.  
+
+Take this example:
+
+
+The problem gets harder if for some reason you have perfect linear combinations of other variables (that you didn't realize). This is why it's good to do correlation matrices at the start of your research, so you can see if there are variables that are perfectly correlated (and also to check for severity of multi-collinearity, which we will get to later).
+
+Consider non-obvious example - imagine that you have information about wages, industry and union rates for Sweden. You want to understand how industry and union participation impacts average earnings $ln(wage_i) = \beta_0 + \beta_1 Union_i + \sum_j^i\beta_j Ind_i +u_i$ where j represents the number of industry dummies and union is a dummy variable on whether an individual has a union contract or not. If one industry, let's say manufacturing, has every employee under a union contract, this will result in perfect collinearity. This is because Industry Manuf and Union are perfectly collinear - OLS can't solve the estimate for manuf industry and union as there are infinite number of solutions. This example is something where you will have to drop either the industry manuf. or union dummy. 
+
+So, we see what happens when assumption 3 breaks. R may automatically drop a perfectly collinear variable, but if it drops without you realizing why, you shoudl review your data. In practice, this is something that you may make a mistake and R fixes it for you, but assumptions 4 and 5 are much more nuanced. Assumption 5 is an assumption we can often "relax" by correcting our standard errors. Assumption 4 is the trickiest assumption to fix, and one that econometricians and applied econometricians spend a lot of time thinking about. 
+
+As a side note, assumption 1 is also something that econometricians work on - particularly when parameters can behave non-linearly or when the dependent variable has a non-normal distribution. 
+
+### Zero-conditional mean (Assumption 4)
+
+
+
+
+
+
+
+
