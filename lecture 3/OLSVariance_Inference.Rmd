@@ -10,7 +10,6 @@ output:
  
  The variance of y, given x, does not depend on the values of the independent variables.
  
- 
  We are computing the variance conditional on the values of the explanatory variables in the sample, we'll need to understand some things about variance of estimators.
  
  For one, the total variance in $x_j$, which we can get form the total sum of squares (SST).
@@ -440,7 +439,7 @@ With multi-collinearity, we can't fix the estimated standard errors - there is n
 You should use an F test for a wide variety of applications.
 
 - Interaction terms
-- Quadratioc terms
+- Quadratic terms
 
 Testing for joint hypothesis with non-liner terms
 

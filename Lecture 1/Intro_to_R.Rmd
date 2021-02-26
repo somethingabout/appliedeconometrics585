@@ -109,7 +109,11 @@ Objects can clog up our RAM, especially if they are large datafiles. If you want
 rm(x,y)
 ```
 
-You can also removing EVERYTHING in your environment with: rm(list = ls())
+You can also removing EVERYTHING in your environment with: 
+```{r}
+rm(list = ls())
+```
+
 
 Just remember that it will delete everything and you'd have to import all of your data again
 

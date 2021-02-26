@@ -13,12 +13,12 @@ We'll be importing excel datasets, so will need to install a package to do so:
 Now let's load the library and import the dataset
 ```{r}
 library(xlsx)
-ceodata <- read.table("/Users/mkaltenberg/Dropbox (Personal)/Pace/ECO585/R notebooks/Lecture 2/textfiles/ceosal1.raw")
+ceodata <- read.table("/Users/mkaltenberg/Dropbox (Personal)/Pace/ECO585/R notebooks/Data/textfiles/ceosal1.raw")
 ```
 Clean up the data a bit (linking the data descriptive file within our dataset)
 ```{r}
 library(tibble)
-library("dplyr")
+library(dplyr)
 ceosalary<- as_tibble(ceodata)
 
 ceosalary <- ceosalary %>% 
@@ -86,127 +86,6 @@ What if we measure salary in dollars, rather than thousands of dollars?
 
 Both the intercept and slope get multiplied by 1,000
 
-### Using a Natural Log
-#### lin-log
- We can approximate percentage changes using the natural log 
-
- Now let the dependent variable be $\log  (w a g e)$: 
-
-\begin{equation*}\log  (salary) =\beta _{0} +\beta _{1} roe +u
-\end{equation*}Holding $u$ fixed, 
-
-\begin{equation*} \Delta \log  (salary) =\beta _{1}  \Delta roe
-\end{equation*}so 
-
-\begin{equation*}\beta _{1} =\frac{ \Delta \log  (salary)}{ \Delta roe}
-\end{equation*}\par\pagebreak\relax 
-
-
- Useful result from calculus: 
-
-\begin{equation*}100 \cdot  \Delta \log  (salary)  \approx  \%  \Delta roe
-\end{equation*}
-
-This means when $\log  (salary) =\beta _{0} +\beta _{1} roe +u$, we have a simple interpretation of $\beta _{1}$: 
-
-\begin{equation*}100 \beta _{1}  \approx  \%  \Delta salary\text{when} \Delta roe =1
-\end{equation*}
-
-Why, you ask, is this $100\beta_1$? Well, *technically* it's not actually 100%. It's a rule of thumb we use. We treat logs as an approximate percent change. 
-If we set $\delta = 1$ for a unit change:
-
-\begin{equation*}E[lnY_0] = \beta_0 +\beta_1 X\end{equation*}
-\begin{equation*}E[lnY_0] = \beta_0 +\beta_1(X+1)\end{equation*}
-\begin{equation*}E[lnY_0]-E[lnY_0] = \beta_1(X+1) -\beta_1X\end{equation*}
-\begin{equation*}E[lnY_1]-E[lnY_0] = \beta_1\end{equation*}
-
-When you multiply $\beta_1$ by 100, the approximation is $E[lnY_1]-E[lnY_0] \approx \frac{E[Y_1]-E[Y_0]}{E[Y_0]}$. For simplicity, let's just drop the expectations and treat it as if there is no variance in $Y_1$ and $Y_2$. Using log-rules, $lnY_1-lnY_2 = ln(\frac{Y_2}{Y_1}) = ln(\frac{Y_1}{Y_1} + \frac{Y_2-Y_1}{Y_1}) = ln(1+\frac{\Delta Y}{Y_1})$ This last part, $\frac{\Delta Y}{Y_1})$ is nothing else but the percent chang in Y divided by 100.
-
-So, we get
-\begin{equation}
-ln(1|\frac{\Delta}{Y_1}=\beta)
-\end{equation}
-
-We can exponentiate both sides and see the approximation:
-$\frac{\Delta y}{y_1} = e^\beta-1 \approx \beta$ 
-
-This approximation comes from a k-th order Taylor series expansion of $e^\beta$ around zero (technically, Maclaurin series):
-
-\begin{equation}
-e^\beta \approx P_k = 1 + \beta+ \frac{\beta^2}{2!}+ \frac{\beta^3}{3!}+ \dots
-\end{equation}
-
-We only use hte linear approximation (and disregard the terms from the quadratic on wards), it will be more accurate the smalle $\beta$ is. This is fine for small changes, but you may want to report $100*(e^\beta -1) instead$:
-
-![Bias in percent change approximation](bias_pctchange.png)
-
-Note: A Taylor series expansion of any function is an infinite polynomial approximation of that function about a certain point. The more higher order terms we use, the more closely we approximate the original function further away from the point.
-
-
-```{r}
-loglin <- lm(log(salary) ~ roe, data = ceosalary)
-sum_loglin <- summary(loglin)
-sum_loglin
-```
-If we do not multiply by 100, we have the decimal version (the proprotionate change). 
-
- This measure is free of units of measurement
-of wage (currency, price level).\par\pagebreak\relax 
-
- Warning: This $R$-squared is not directly comparable to the $R$-squared when $salary$ is the dependent variable. The total variation (SSTs) in $salary_{i}$ and $l salary_{i}$ that we must explain are completely different. 
-
-#### Log-log
- We can use the log on both sides of the equation to get constant elasticity models. For example, if 
-
-\begin{equation*}\log  (s a l a r y) =\beta _{0} +\beta _{1} \log  (s a l e s) +u
-\end{equation*}then 
-
-\begin{equation*}\beta _{1} \approx \frac{ \% \Delta s a l a r y}{ \% \Delta s a l e s}
-\end{equation*}
-
-The elasticity is free of units of $s a l a r y$ and $s a l e s$. 
-
-A constant elasticity model for salary and sales makes more sense than a constant dollar effect.
-
-The estimated elasticity of CEO salary with respect to firms sales is about .25 or a 1% change in sales is associated with a .257% increase in roe (To interpret this elasticity, we do not need to know $s a l a r y$ is in thousands of dollars while $s a l e s$ is in millions.) 
-
-```{r}
-loglog <- lm(log(salary) ~ log(sales), data = ceosalary)
-sum_loglog <- summary(loglog)
-sum_loglog
-```
-How do you interpret the coefficient of sales?
-
-A 10 percent increase in sales is associated with (causes?) about a 
-
-\begin{equation*}.257 (10) =2.57
-\end{equation*}percent increase in salary. 
-
-As an exercise, make sure the elasticity does not change if sales is measured in, say, billions. 
- 
-So, define $l s a l e s b i l =\log  (s a l e s/1000)$.) The intercept will change.
-
-How do you interpret the intercept?
-Well, it's trickier to interpret the log directly. The intercept is not measuring a change in values - so it's not a percent change (there is no difference in logs). It's much easier just to exponentiate the value. So, to interpret the intercept, we can exponentiate like so:
-
-```{r}
-exp(loglin$coefficients)
-```
-In this case, the intercept is 822.35 million dollars.
-
-
-A handy reminder of interpreting coefficients is:
-
-|    Model  |Dep. Var | Indep. Var | $\beta_1$|
-|-----------|---------|------------|----------|
-|Level-Level| y       |x           |$\Delta y=\beta_1 \Delta x$
-| Level-Log | y       |log(x)      |$\Delta y=(\beta_1/100\%) \Delta x$
-| Log-Level |log(y)   |x           |$\%\Delta y=(100\beta_1) \Delta x$
-|  Log-Log  |log(y)   |log(x)      |$\Delta \%y=\beta_1\Delta x$
-
-The possibility of using the natural log to get nonlinear relationships between $y$ and $x$ raises a question: What do we mean now by ``linear'' regression? 
-
-The answer is that the model is linear in the \textit{parameters}, $\beta _{0}$ and $\beta _{1}$. We can use any transformations of the dependent and independent to get interesting interpretations for the parameters. 
 
 # OLS properties
 Let's see some of the OLS properties in action
@@ -237,7 +116,7 @@ sum(ceosalary$roedec*u)
 Again, there are some rounding errors in computation, but the sum is close to 0
 
 
-Because the $\hat{y}_i$ are linear functions of the xi, the fitted values and residuals are uncorrelated, too:
+Because the $\hat{y}_i$ are linear functions of the $x_i$, the fitted values and residuals are uncorrelated, too:
 ```{r}
 sum(yhat*u)
 ```
@@ -268,17 +147,109 @@ Recall that for the Simple Linear Regression the assumptions are:
   
   2. Random sample size of n
   
-  3. Sample Variation in the Explanatory Variable (you need to have variance in X - it can't be a )
+  3. Sample Variation in the Explanatory Variable (you need to have variance in X - it can't be a constant)
   
   4. Zero Conditional Mean (error term has zero mean given any value of the explanatory variable) $E(u|x)=0$ for all x
   
   5. Homoskedasticity or Constant Variance (error term has the same variance given any value of the explanatory variable x, $Var(u|x) = \delta^2 > 0$ for all x
-  
+
+We mostly work in the realm of multiple linear regressions and the difference between the simple linear regression and multiple linear regressions requires only one additional assumption, so we'll just hop right into it.
+
+## Multiple Linear Regression Assumptions
+
+1. $y=\beta_0 + \beta_1x_1+\beta_2x_2 + \dots + \beta_kx_k + u$ (linearity)
+
+2. Random sampling from the population
+
+${(u_i,X_i), i =1, \dots, N}$ is a random sample from the $(u, X)$ population where  $(u_i, X_i)$ are i.i.d. (independently and identically  distributed)
+
+3. no perfect collinearity in the sample (aka non redundancy)
+
+$\sum^n_{i=1} (X_i-\bar{X})^2>0$
+
+4. $E(u|x_1,\dots,x_k) = E(u) = 0$ (zero conditional mean)
+
+5. $Var(u|x_1, \dots, x_k) = Var(u) = \sigma^2$ (homoskedasticity)
+
+6. $u_i | X_i \overset{\text{iid}}{\sim} \mathcal{N}(0,\sigma^2_u)$
+The distribution u given $(x_1, \dots, x_k$ is $Normal(0,\sigma^2)$  (Normality of the error term)
+
+Assumptions 1 - 4 ensure unbiasedness in our parameter estimation aka $E(\hat{\beta_j})=\beta_j$
+
+Assumptions 1-5 are the Gauss-Markov assumptions aka BLUE
+
+Assumption 1-6 are the classic linear assumptions and do exact statistical inference.
+
+Sometimes, you'll see the conditional expectation function written as:
+
+$E(Y_i|X_i) = \beta_0 + \beta_1X_i$
+
+This implies:
+
+i. The conditional expectation of $Y_i$ is linear in $X_i$ (Asmp. 1)
+ii. the error term is mean-independent of the regressor (Asmp. 4)
+iii. the error term is distribution around zero.
+(Asmp. 5)
+
+Assumptions 1, 5 and 6 are easier to relax. Assumption 2 is easy to implement and assumption 3 is data dependent, but will be important for panel data.
+Assumption 4 - which we've discussed a lot, is what a lot of econometrics is all about. 
+
+We can write assumptions 1,3,4,5 concisely:
+
+$Y_i | X_i \overset{\text{iid}}{\sim} \mathcal{N}(\beta_0 +\beta_1X_i, \sigma^2)$
+
+or
+
+$u_i | X_i \overset{\text{iid}}{\sim} \mathcal{N}(0, \sigma^2_u)$
+
+
+### Perfect Collinearity (Assumption 3)
+Assumptions 1,2, 4, and 5 are the same as in the simple linear model. The new assumption is about perfect collinearity. When estimating OLS, perfect linear combinations can't be distinguished. In other words, we can't distinguish the estimates from the two variables and there are infinite possible answers. 
+
+This seems obvious in cases where we have a set of categorical dummies. The solution to this issue is to drop a variable, and as consequence, our interpretation changes. We interpret a set of dummies relative to the one we dropped.  
+
+Take this example, where we measure the impact of region on wages. We interpret the coefficient of south relative the variable excluded (east). Including all variables would lead to perfect collinearity.
+
+
+```{r}
+data("wage1")
+ dummies <- lm(lwage ~ educ+tenure+smsa+northcen+south+west, data= wage1)
+
+summary(dummies)
+```
+
+The problem gets harder if for some reason you have perfect linear combinations of other variables (that you didn't realize). This is why it's good to do correlation matrices at the start of your research, so you can see if there are variables that are perfectly correlated (and also to check for severity of multi-collinearity, which we will get to later).
+
+Consider non-obvious example - imagine that you have information about wages, industry and union rates for Sweden. You want to understand how industry and union participation impacts average earnings $ln(wage_i) = \beta_0 + \beta_1 Union_i + \sum_j^i\beta_j Ind_i +u_i$ where j represents the number of industry dummies and union is a dummy variable on whether an individual has a union contract or not. If one industry, let's say manufacturing, has every employee under a union contract, this will result in perfect collinearity. This is because Industry Manuf and Union are perfectly collinear - OLS can't solve the estimate for manuf industry and union as there are infinite number of solutions. This example is something where you will have to drop either the industry manuf. or union dummy. 
+
+So, we see what happens when assumption 3 breaks. R may automatically drop a perfectly collinear variable, but if it drops without you realizing why, you should review your data. In practice, this is something that you may make a mistake and R fixes it for you, but assumptions 4 and 5 are much more nuanced. Assumption 5 is an assumption we can often "relax" by correcting our standard errors. Assumption 4 is the trickiest assumption to fix, and one that econometricians and applied econometricians spend a lot of time thinking about. 
+
+As a side note, assumption 1 is also something that econometricians work on - particularly when parameters can behave non-linearly or when the dependent variable has a non-normal distribution. 
+
+### Zero-conditional mean (Assumption 4)
+
+This assumption is by far the most important assumption - if this is broken, then we have a problem with biasedness. Bad news is that this assumption is broken frequently. 
+
+It is the glue of showing causality.
+
+It's easiest to think of this in a randomized setting or a randomized control trial. 
+
+We want to evaluate the effectiveness of health care on health outcomes. In an ideal world, we'd create two groups of identical people. Where we'd have one twin group that is exposed to health care and the other twin group that does not have health care - and this assignment is *random*. Then we'd compare their health outcome differences - a difference in the means of the two groups. 
+
+Obviously, we don't have identical twins in every possible way roaming around. So, the best we an do is a build an ideal setting where we have nearly identical groups.  Any setting in which the two groups that we are comparing are non-randomly different are what makes up our error term. 
+
+So, you can imagine, that there are tons of settings in which the groups we may differ - and those situations will break assumption 4. 
+
+Econometrics is mostly building an statistically ideal situation in which we have two identical groups and the only difference between the two groups are randomly assigned - that is your X and a variable that you are interested in understanding. 
+
+And when you consider your research, your interest should focus on a couple of X's (meaning that you want to create an ideal setting for a couple of variables - you want to understand unbiased estimates for a one or a couple variables).  The other variables that you include - those controls - are meant to help you create this ideal setting, but often, they can biased (and that's ok - so long as you understand the caveats and you don't interpret those coefficients as causal).
 
 ### Unbiasedness of Beta 
-The key assumption that you must think about the most is if assumption 4 is met. This assumption is often broken, and as a consequence will result in biasedness in your $\beta$ parameters. 
+The key assumption that you must think about the most is if assumption 4 is met. This assumption is often broken, and as a consequence will result in biasedness in your $\beta$ parameters.
 
-We can do an experiment to see if $\beta_0$ and $\beta_1$ are unbiased when assumptions 1-4 hold. In truth, unbiasedness often results when assumption 4 is broken.
+Technically, assumptions 1-4 are required for unbiasedness, but in practical terms, often assumption 4 is biggest concern.  When assumption 1 is broken, we use non-linear estimation techniques that's outside of the scope of this course. Assumption 2 is a concern when you choose your data (target population), complex survey designs, designing randomized control trials, and time series data (we'll talk about this later with panel data).
+
+We can do an experiment to see if $\beta_0$ and $\beta_1$ are unbiased when assumptions 1-4 hold. 
 
 We will randomly draw from a normal distribution for u and x. Then we will create a y variable as a combination of x and u, specifically $y=3+2x+u$.This way will know that $\beta_0$ should be 3 and $\beta_1$ should be 2. We'll repeat this process multiple times and will see that the estimates should be close to our expected values.
 
@@ -308,18 +279,89 @@ You can see that the values are note exact, but they are close to expected value
 
 We won't ever know the true population value, but we hope that our sample is “typical” and produces a slope estimate close to $\beta_1$, but we can never know. 
 
-Now, let's take a practical example of Biasedness.
+
+### Omitted Variable Bias
+There are many ways to break assumption 4, omitted variable bias is just one example - so, let's dive into this particular violation of assumption 4.
+
+#### Theory 
+
+We require two conditions for the coefficient on $X_1$ to "suffer" from omitted variable bias.
+
+1. $X_1$ is correlated with the omitted variable ($X_2$)
+2. The omitted variable ($X_2$) is a determinant of the outcome ($Y$)
+
+If omitted variable bias is present then $\hat{\beta}_1$ does not converge (in probability) to the true value but instead to the following:
+
+$$\hat{\beta}_1 \buildrel p \over \longrightarrow  \beta_1 + \rho_{X_1 u} \frac{\sigma_u}{\sigma_{X_1}}$$
+
+Quite generally, this means that there is something in the error term ($u$) that is correlated with both $X_1$ and $Y$, which invalidates the zero conditional mean assumption and biases the coefficient of $X_1$ in a particular direction.
+
+#### Deriving the formula
+
+The OLS estimator of the slope in a bi-variate regression:
+
+$$ \hat{\beta_1} = \beta_1 + \frac{\frac{1}{n}\sum_i (X_{1i} - \bar{X}_1)u_i}{\frac{1}{n}\sum_i (X_{1i} - \bar{X}_1)^2} $$
+
+The nominator of the second term converges in probability to the covariance of $X_i$ and $u_i$, so that $\frac{1}{n}\sum_i (X_{1i} - \bar{X}_1)u_i \buildrel p \over \longrightarrow  \text{cov}(X_{1i}, u_i) = \rho_{X_1 u} \sigma_u \sigma_{X_1}$. The denominator converges in probability to the variance of $X_{1i}$, so that $\frac{1}{n}\sum_i (X_{1i} - \bar{X}_1)^2 \buildrel p \over \longrightarrow \text{var}(X_{1i}) = \sigma_{X_1}^2$. As a result, the entire equation converges to
+
+$$\hat{\beta}_1 \buildrel p \over \longrightarrow  \beta_1 + \frac{\text{cov}(X_{1i}, u_i)}{\text{var}(X_{1i})} $$
+Or, written differently, from reshuffling the definition of a correlation, i.e. $\rho_{X_{1} u} = \text{cov}(X_{1i},u) / (\sigma_{X_1} \sigma_u)$, we have:
+
+$$\hat{\beta}_1 \buildrel p \over \longrightarrow  \beta_1 + \frac{\rho_{X_1 u} \sigma_u \sigma_{X_1}}{\sigma_{X_1}^2} = \beta_1 + \rho_{X_1 u}\frac{ \sigma_u}{\sigma_{X_1}} $$ where the last equality follows simply from canceling terms.
+
+If the OLS assumptions are satisfied, the last term becomes zero and our OLS estimator of $\beta_1$ is unbiased and consistent. However, if there are important omitted variables, then the OLS of $\beta_1$ is biased and inconsistent (i.e. even with large N the bias does not vanish).
+
+
+#### Deriving the direction (formally)
+
+Suppose you have two models, one simple bivariate OLS (aka the "wrong" model) 
+$$ Y_i = \beta_0 + \beta_1 X_{1i} + u_i $$
+and the "true" model, in which two X's are included
+$$ Y_i = \gamma_0 + \gamma_1 X_{1i} + \gamma_2 X_{2i} + e_i $$
+We want to know the direction of the bias in $\hat{\beta}_1$ based on the first (wrong) model.
+
+If we look at the formula for the OV-bias, we cannot directly compute $\rho_{X_1 u}$ -- the correlation between $X_{1i}$ and the error ($u_i$) -- because the population error is not observed. However, we can clearly see that the "true" model is different from the biased model in terms of parameters and in the sense that $u_i = \gamma_2 X_{2i} + e_i$. Further, since the second model is the true model, we have $\text{E}[e_i | X_{1i}, X_{2i}]=0$; that is, the expectation of $e_i$ will be zero and the error is not systematically correlated with $X_{1i}$.
+
+Now we can rewrite the covariance between $X_{1i}$ and the error term ($u_i$) in terms of observables using the alternative formulation from above for simplicity:
+
+$$\hat{\beta}_1 \buildrel p \over \longrightarrow  \beta_1 + \frac{\text{cov}(X_{1i}, u_i)}{\text{var}(X_{1i})} = \beta_1 + \frac{\text{cov}(X_{1i}, [\gamma_2 X_{2i} + e_i])}{\text{var}(X_{1i})} $$
+
+$$\hat{\beta}_1 \buildrel p \over \longrightarrow  \beta_1 + \frac{\gamma_2\text{cov}(X_{1i}, X_{2i}) + \text{cov}(X_{1i}, e_i) }{\text{var}(X_{1i})} =  \beta_1 + \frac{\gamma_2\text{cov}(X_{1i}, X_{2i}) + 0 }{\text{var}(X_{1i})}$$
+
+which leads us to the last version[^2]
+
+$$\hat{\beta}_1 \buildrel p \over \longrightarrow  \beta_1 +  \frac{\gamma_2\text{cov}(X_{1i}, X_{2i})}{\text{var}(X_{1i})} = \beta_1 + \gamma_2 \rho_{X_{1} X_{2}} \frac{\sigma_{X_2}}{\sigma_{X_1}} $$
+
+We do not need to know the ratio of the two standard deviations ($\frac{\sigma_{X_2}}{\sigma_{X_1}}$) to derive the direction, as it will always be positive, so all we care about is $\gamma_2 \rho_{X_{1} X_{2}}$. We can simply estimate $\gamma_2$ by running the second model and similarly just estimate the correlation $\rho_{X_{1} X_{2}}$. All that's left is to figure out the direction of the true coefficient. We can determine the sign of the "true" $\beta_1$  by estimating its counterpart $\gamma_1$. Then we have
+
+1. if $\beta_1 < 0$ and $\gamma_2 \rho_{X_{1} X_{2}}< 0$, then $\beta_1$ is downward biased and overestimated.
+2. if $\beta_1 < 0$ and $\gamma_2 \rho_{X_{1} X_{2}}> 0$, then $\beta_1$ is upward biased and underestimated.
+3. if $\beta_1 > 0$ and $\gamma_2 \rho_{X_{1} X_{2}}< 0$, then $\beta_1$ is downward biased and underestimated.
+4. if $\beta_1 > 0$ and $\gamma_2 \rho_{X_{1} X_{2}} > 0$, then $\beta_1$ is upward biased and overestimated.
+
+A simple way to remember this is:
+
+|     | $Corr(x_1,x_2)>0$ | $Corr(x_1,x_2)<0$ |
+|-----|-------------------|--------------------|
+| $Corr(y,x) > 0$| pos bias | neg bias | 
+| $Corr(y,x) > 0$| pos bias | neg bias | 
+
+This works well only if we compare a single covariate model to a model with one additional X. In practice, there may be multiple omitted variables at work, each possibly biasing the true coefficient of $X_1$ in different directions. Theoretically, we can even envision a case where there are two omitted variables in opposing directions with offsetting effects!
+
+[^2]:In the last equality we use the same trick as applied by S&W when deriving the original formula. Note that $\rho_{X_{1} X_{2}} = \text{cov}(X_{1i},X_{2i}) / (\sigma_{X_1} \sigma_{X_2})$. Reshuffling and then canceling terms gives the last expression.
+
+Now, let's take a practical example of Omitted Variable Biasedness.
 
 There is a package that contains all of Wooldridge's data, so let's make our life easy:
 ```{r}
-install.packages("wooldridge")
+#install.packages("wooldridge")
 ```
 
 ```{r}
 library(wooldridge)
 ```
 
-Load in the education data (you can load in R data from 
+Load in the education data (you can load data into R from the package directly)
 ```{r}
 wagedata <-data("wage1")
 biased <- lm(lwage ~ educ+tenure, data= wage1)
@@ -329,42 +371,38 @@ less_biased <-lm(lwage ~ educ+exper, data= wage1)
 summary(less_biased)
 ```
 
-We can see that the coefficient of education changes a lot when we compare our regression with (.0865) and without experience (.097).  It increases by 12% - meaning that without the inclusion of experience, education was downwardly biased. 
+We can see that the coefficient of education changes when we compare our regression with (.0865) and without experience (.097).  It increases by ~10% - meaning that without the inclusion of experience, education was downwardly biased. 
 
-## Multiple Linear Regression Assumptions
+### A note about Adjusted R-squared
 
-The Multiple Linear Regressions assumptions are:
+The Sum of Squares decomposition still holds with $K$ regressors \vspace{-1em}
 
-1. $y =\beta_0+\beta_1x_1+\beta_2x_2+\dots+\beta_kx_k+u$
+$$ \sum_{i=1}^N (Y_i - \bar{Y})^2 = \sum_{i=1}^N (\hat{Y}_i - \bar{Y})^2 + \sum_{i=1}^N \hat{u}_i^2 $$ 
 
-2. Random sampling from the population
+However, the $R^2$ keeps going up when we add (even meaningless) regressors. So we introduce a penalty  \vspace{-1em}
 
-3. No perfect collinearity in the sample
+This is the Adjusted $R^2$
+$$\bar{R}^2 \equiv 1 - \left(\frac{N-1}{N-K-1}\right) \frac{\sum_{i=1}^N \hat{u}_i^2}{\sum_{i=1}^N (Y_i - \bar{Y})^2}$$
 
-4. Zero Conditional Mean ($E(u|x_1,x_2,...,x_k) = 0$ for all $(x_1,\dots,x_k)$)
-(If u is correlated with any of the $x_j$, 4 is violated.)
+Similarly, the $SER$ now needs to be adjusted for the extra degrees-of-freedom used during the estimation \vspace{-1em}
 
-5. Homoskedasticity $Var(y|x_1, x_2, . . . , x_k) = Var(u|x_1, x_2, . . . , x_k) = \delta^2$
+$$SER \equiv s_{\hat{u}} = \sqrt{\frac{1}{N-K-1}\sum_{i=1}^N \hat{u}_i^2}$$
+Can the adjusted $R^2$ ever be negative?
 
-They are also called the Gauss-Markov assumptions. When these assumptions hold they are **BLUE** - the Best Linear Unbiased Estimator
+What happens if we include an irrelavant variable? Let's see an example...
 
-### Perfect Collinearity (Assumption 3)
-Assumptions 1,2, 4, and 5 are the same as in the simple linear model. The new assumption is about perfect collinearity. When estimating OLS, perfect linear combinations can't be distinguished. In other words, we can't distinguish the estimates from the two variables and there are infinite possible answers. 
+```{r}
+mlb <-lm(lsalary ~years + gamesyr+bavg + hrunsyr+rbisyr, data = mlb1)
 
-This seems obvious in cases where we have a set of categorical dummies. The solution to this issue is to drop a variable, and as consequence, our interpretation changes. We interpret a set of dummies relative to the one we dropped.  
+mlb2 <-lm(lsalary ~years + gamesyr+bavg + hrunsyr+rbisyr+percwhte, data = mlb1)
+summary(mlb)
+summary(mlb2)
 
-Take this example:
+
+```
 
 
-The problem gets harder if for some reason you have perfect linear combinations of other variables (that you didn't realize). This is why it's good to do correlation matrices at the start of your research, so you can see if there are variables that are perfectly correlated (and also to check for severity of multi-collinearity, which we will get to later).
 
-Consider non-obvious example - imagine that you have information about wages, industry and union rates for Sweden. You want to understand how industry and union participation impacts average earnings $ln(wage_i) = \beta_0 + \beta_1 Union_i + \sum_j^i\beta_j Ind_i +u_i$ where j represents the number of industry dummies and union is a dummy variable on whether an individual has a union contract or not. If one industry, let's say manufacturing, has every employee under a union contract, this will result in perfect collinearity. This is because Industry Manuf and Union are perfectly collinear - OLS can't solve the estimate for manuf industry and union as there are infinite number of solutions. This example is something where you will have to drop either the industry manuf. or union dummy. 
-
-So, we see what happens when assumption 3 breaks. R may automatically drop a perfectly collinear variable, but if it drops without you realizing why, you shoudl review your data. In practice, this is something that you may make a mistake and R fixes it for you, but assumptions 4 and 5 are much more nuanced. Assumption 5 is an assumption we can often "relax" by correcting our standard errors. Assumption 4 is the trickiest assumption to fix, and one that econometricians and applied econometricians spend a lot of time thinking about. 
-
-As a side note, assumption 1 is also something that econometricians work on - particularly when parameters can behave non-linearly or when the dependent variable has a non-normal distribution. 
-
-### Zero-conditional mean (Assumption 4)
 
 
 
