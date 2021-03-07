@@ -1,0 +1,399 @@
+---
+title: "Heteroskedasticity"
+output: html_notebook
+---
+
+## Lagrange Multiplier
+
+[Details on the optimization problem that LM solves can be found here](https://medium.com/@andrew.chamberlain/a-simple-explanation-of-why-lagrange-multipliers-works-253e2cdcbf74])
+
+This test statistic is useful for asymptotic analysis, as well. This test statistic relies on the Gauss-Markov assumptions - the same assumptions that justify the t and f statistic in large samples (and we don't need the normality assumption)
+
+Take the population model with k independent variables:
+\begin{equation} 
+y= \beta_0 + \beta_1X_1 + \dots + \beta_kx_k +u
+\end{equation}
+
+Let's say we to test some q variables of the regression that all have zero population parameters, so that the null hypothesis is
+\begin{equation} 
+H_0: \beta_{k-q+1} = 0, \dots, \beta_k = 0
+\end{equation}
+which has q exclusion restrictions on . Like F testing, the alternative is that one of these parameters is different from zero.
+
+LM statistic requires estimation of the *restricted* model only, so let's assume we run 
+\begin{equation}
+y = \tilde{\beta_0} + \tilde{\beta_1} + \dots + \tilde{\beta_{k-qX_k-q}} +\tilde{u}
+\end{equation}
+Where $\tilde$ indicates that the estimates are from the restricted model. 
+
+IF the omitted variables truly have zero population coefficients, then the error term should be uncorrelated with each of these variables in the sample.   We must use all of the regressors - the omitted regressors in the restricted model are correlated with the regressors that appear in the restricted model:
+
+\begin{equation}
+\tilde{u} on X_1, x_2, \dots, x_k
+\end{equation}
+
+This is an *auxiliary regression*
+
+If our null assumption is true, the R-squared in our above equation should be 0.  But, we must decide what statistic is large enough to reject the null at some significance level.
+
+As it turns out, the sample size multiplied by the R-squared of the auxiliary regression is dristributed as a chi-squared random variable with q degrees of freedom - so we use the chi-squared variable.
+
+All that we care about in the test statistic is the number of restrictions being tested (q), the size of the auxiliary R-squared and the sample size.
+```{r}
+data("crime1")
+
+#Step 1, regress y on restricted set of independent variables
+crime <- lm(narr86 ~ pcnv +  ptime86 + qemp86, data = crime1)
+
+#store the residuals
+crime_resids <- crime$residuals
+
+#Step 2, regress variables on residual
+crime_utilde <- lm(crime_resids ~ pcnv +  ptime86 + qemp86+ avgsen +tottime, data = crime1)
+
+#Calculate the LM statistic (rsquared from step 2 times the number of observations)
+summary(crime_utilde)$r.squared *nrow(crime1)
+
+#We look this test statistic up in the Chi-squared distribution 
+pchisq(2, 2)
+
+#Thus we fail to reject the null that B_avgsen=0 and Btottime = 0
+
+
+```
+
+#Heteroskedasticity
+As a reminder, heteroskedasticity does not cause biasedness, it doesn't break Assumptions 1-4. 
+
+However, if Var(u|x) depends on x – that is, heteroskedasticity is present – then OLS is no longer BLUE. In principle, it is possible to find unbiased estimators that have smaller variances than the OLS estimators. A similar comment holds for asymptotic efficiency.
+
+Practically, a more important point is that the *usual standard errors are no longer valid*, which means the t statistics and confidence intervals that use these standard errors cannot be trusted. This is true even in large samples.
+
+AND *joint hypotheses tests using the usual F statistic are no longer valid in the presence of heteroskedasticity*.
+
+Without MLR.5, there are still good reasons to use OLS, but we need to modify the usual test statistics to make them valid in the presence of heteroskedasticity.
+
+We are not talking about a new estimation method. It is still OLS estimation to obtain the $\beta_j$ . But we need to use heteroskedasticity-robust inference after OLS estimation. We will see how to do that.
+
+Note: often it is claimed that $R^{2}$ and $\bar{R}^{2}$ are no longer valid as goodness-of-fit measures in the presence of heteroskedasticity. This is untrue. They both remain consistent estimators of the population $R$-squared. 
+
+To see this, remember the population $R$-squared is 
+
+\begin{equation*}\rho ^{2} =1 -\frac{\sigma _{u}^{2}}{\sigma _{y}^{2}}\text{,}
+\end{equation*}where $\sigma _{u}^{2} =V a r (u)$ and $V a r (y)$ are \textit{unconditional} variances. 
+
+$S S R/n$ and $S S R/(n -k -1)$ are consistent for $\sigma _{u}^{2}$ whether or not $V a r (u) =V a r (u\vert \mathbf{x})$. Also, $S S T/n$ and $S S T/(n -1)$ are consistent for $\sigma _{y}^{2}$.\par\pagebreak\relax 
+
+ Writing the usual and adjusted $R$-squareds as :
+
+\begin{equation*}R^{2} =1 -\frac{S S R/n}{S S T/n}\text{,}\bar{R}^{2} =1 -\frac{S S R/(n -k -1)}{S S T/(n -1)}
+\end{equation*}
+
+we can easily see the plim of each is $\rho ^{2} =1 -\sigma _{u}^{2}/\sigma _{y}^{2}$ (because the plim of the ratio is the ratio of the plims).
+
+### Heteroskedasticity-Robust Inference after OLS Estimation
+
+Fortunately, standard errors and all test statistics can be modified to be valid in the presence of \textbf{heteroskedasticity of unknown
+form}. This includes the possibility of homoskedasticity, that is, MLR.5 actually holds. So we can compute CIs and conduct statistical inference without worrying about whether MLR.5 holds. 
+
+Most regression packages include an option with OLS estimation that computes **heteroskedasticity-robust standard errors**, which then produces **heteroskedasticity-robust t statistics** and 
+**heteroskedasticity-robust confidence intervals.** Not surprisingly, they depend on the OLS residuals.
+
+Question: If we can compute standard errors and test statistics that work with or without Asssumption MLR.5, how come we bother with the usual standard errors at all? 
+
+Answers:
+(1) Tradition (not necessarily a good answer). 
+(2) A better answer: The heteroskedasticity-robust test statistics and CIs only have asymptotic justification, even if the full set of CLM assumptions hold. (And the robust statistics are virtually always different from the usual statistics, regardless of which set of assumptions holds in the population.)
+
+With smaller sample sizes, the heteroskedasticity-robust statistics need not be well behaved. In some cases, they can have more bias
+than the usual statistics. 
+
+Some researchers, especially with large sample sizes, only report the heteroskedasticity-robust statistics. 
+
+It is not a bad idea to compute, and even report, both sets of standard errors, often with the robust standard errors below the usual standard errors.
+
+In general, do as Wooldridge does, in OLS, always report your robust standard errors.
+
+![robust_se_wooldridge](robust.png)
+
+Trivia not:
+Sometimes the HC SE are called a sandwich estimator (there are many) That's because if we use the linear algebra notation of the variance of $\beta$, we get  $Var(\hat{\beta_j}) = (X^TX)^{-1}X^T\Omega X(X^TX)^{-1}$, where the "bread" is $(X^TX)^{-1}$ and the meat ($X^T\Omega X$) and robust SE is where we change the meat.
+```{r}
+data(wage1) 
+#without robust SE
+wage_educ <-lm(wage ~educ + exper + I(exper^2)+female + married, data =wage1)
+summary(wage_educ)
+
+#WITH robust SE
+library(sandwich) #need this to use lmtest package  
+# vcovHC   is the heteroskedasticity consistent estimation of the covariance matrix of the coefficient estimates
+
+library(lmtest)
+
+coeftest(wage_educ, vcov = vcovHC(wage_educ, type="HC1"))
+
+
+
+```
+
+Let's compare the SE of education, we can see that the robust SE od educ is higher than the non-robust SE. However, the changes are slight and it doesn't change our "decision" to reject the null at the 1\% level. The CIs are slightly wider, t statistics slightly lower.
+
+It is sometimes incorrectly claimed that the heteroskedasticity-robust standard errors for OLS are always larger than the usual OLS standard errors. 
+
+We can see this in:
+```{r}
+data("apple")
+apple_reg <- lm( ecolbs ~ ecoprc +regprc +log(faminc)+ numlt5 + num5_17 + num18_64+ numgt64+ age, data=apple)
+
+summary(apple_reg)
+coeftest(apple_reg, vcov = vcovHC(apple_reg, type="HC1"))
+```
+
+The robust standard error on own price, ecoprc, is .565, below the usual standard error, .589. But for the coefficient on the substitute good’s price, regprc, the robust standard error is substantially larger: .934 compared with .712.
+
+The usual F statistic for testing multiple hypotheses can also be modified to allow unknown heteroskedasticity. Matrix algebra is required (we change the meat of the variance of $\beta$). The robust Wald statistic has an approximate chi-square distribution in large samples, but it is easy to turn it into an approximate F distribution. 
+
+In the following example the robust test rejects at the 5% level while the nonrobust one is not even close.
+
+```{r}
+library(car)
+
+#Ftest
+linearHypothesis(apple_reg, c("log(faminc)=0", "numlt5=0","num5_17=0", "num18_64=0", "numgt64=0", "age=0"))
+
+#Wald test
+# setting up our restricted model (our original model is the unrestricted model)
+res_model <- lm( ecolbs ~ ecoprc +regprc , data=apple)
+
+waldtest(apple_reg, 
+         res_model, vcov = vcovHC(apple_reg, type="HC1"),
+         test = "Chisq")
+```
+
+### Testing for heteroskedasticity
+
+With simple adjustments to the usual OLS test statistics, there is less of a case for testing for heteroskedasticity.
+
+Though, there are a few reasons to test for heteroskedasticity include: 
+
+(1) We may want to know whether we need to report robust
+standard errors. 
+
+(2) We may want to know whether we can improve over OLS, which is possible if there is heteroskedasticity. 
+
+(3) We may actually want to determine whether the variability in $y$ about its mean changes with the values of the $x_{j}$.
+
+For example, are wages (or log wages) more or less variable for women than men, holding other factors fixed? Are average test scores (or pass rates) really less variable in larger schools -- after controlling for certain factors? 
+
+When our data have a time dimension, we might want to know what has happened to the error variance over time.
+
+In order to test for heteroskedasticity, we maintain 
+
+\begin{gather*}y =\beta _{0} +\beta _{1} x_{1} +\beta _{2} x_{2} +\ldots  +\beta _{k} x_{k} +u \\
+E (u\vert \mathbf{x}) =0\text{,}\end{gather*}which are MLR.1 and MLR.4, respectively. As before we assume random sampling (MLR.2) and of course we rule out perfect collinearity (MLR.3). 
+
+If $E (u\vert \mathbf{x}) =0$ then 
+
+\begin{equation*}V a r (u\vert \mathbf{x}) =E (u^{2}\vert \mathbf{x})\text{.}
+\end{equation*}
+
+Therefore, given MLR.3, Assumption MLR.5 can be written 
+
+\begin{equation*}E (u^{2}\vert \mathbf{x}) =\sigma ^{2} =E (u^{2})\text{,}
+\end{equation*}and so we want to test the null hypothesis 
+
+\begin{equation*}H_{0} :E (u^{2}\vert x_{1} ,x_{2} ,\ldots  ,x_{k}) =\sigma ^{2}\text{(constant)}
+\end{equation*}
+
+To test $H_{0}$ we need an alternative. There are uncountable possibilities, but why not a linear model? 
+
+\begin{equation*}E (u^{2}\vert x_{1} ,x_{2} ,\ldots  ,x_{k}) =\delta _{0} +\delta _{1} x_{1} +\ldots  +\delta _{k} x_{k}
+\end{equation*}\par\pagebreak\relax 
+
+We can write the linear model for $E (u^{2}\vert x_{1} ,x_{2} ,\ldots  ,x_{k})$ instead with an error term: 
+
+
+\begin{gather*}u^{2} =\delta _{0} +\delta _{1} x_{1} +\ldots  +\delta _{k} x_{k} +v \\
+E (v\vert x_{1} ,\ldots  ,x_{k}) =0\end{gather*}and then we want to test whether all slope coefficients are zero: 
+
+\begin{equation*}H_{0} :\delta _{1} =\delta _{2} =\ldots  =\delta _{k} =0
+\end{equation*}
+
+This is an odd looking regression model because the dependent variable is $u^{2}$, the *squared* error. But it satisfies MLR.1 to MLR.4.
+
+ Under the null $H_{0} :\delta _{1} =\delta _{2} =\ldots  =\delta _{k} =0$, the intercept must be $\sigma ^{2}$: $\delta _{0} =\sigma ^{2}$. 
+
+Under the null, it makes sense to assume that $v$ is independent of the $x_{j}$, in which case the equation 
+
+\begin{equation*}u^{2} =\delta _{0} +\delta _{1} x_{1} +\ldots  +\delta _{k} x_{k} +v
+\end{equation*}satisfies MLR.1 through MLR.5. 
+
+Therefore, we can test 
+
+\begin{equation*}H_{0} :\delta _{1} =\delta _{2} =\ldots  =\delta _{k} =0
+\end{equation*}using the usual $F$ test for joint significance of all explanatory variables.\par\pagebreak\relax 
+
+We are testing the null hypothesis that the \textit{squared} error is uncorrelated with each of the explanatory variables.
+
+
+Clearly, $u^{2} \geq 0$ cannot be normally distributed. In fact, if the equation 
+
+\begin{equation*}y =\beta _{0} +\beta _{1} x_{1} +\beta _{2} x_{2} +\ldots  +\beta _{k} x_{k} +u
+\end{equation*}
+
+satisfyies Assumption MLR.6 (normality of $u$), $u^{2}/\sigma ^{2}$ has a $\chi _{1}^{2}$ distribution, which is very different from normal. Consequently, any test using $u^{2}$ as the dependent variable must rely on large-sample approximations.
+
+Write the equation for a random draw $i$ as 
+
+\begin{equation*}u_{i}^{2} =\delta _{0} +\delta _{1} x_{i 1} +\ldots  +\delta _{k} x_{i k} +v_{i}\text{.}
+\end{equation*}${\Large  \bullet }$ Now, we do not observe $u_{i}^{2}$ because these are the squared errors! (Remember, we observe the $y_{i}$ and $x_{i j}$ for each draw $i$, but not the error $u_{i}$.) 
+
+Solution: Replace the errors with the OLS residuals. In other words,the equation we estimate looks like 
+
+\begin{equation*}\hat{u}_{i}^{2} =\delta _{0} +\delta _{1} x_{i 1} +\ldots  +\delta _{k} x_{i k} +e r r o r_{i}\text{,}
+\end{equation*}where $e r r o r_{i}$ is complicated because it depends on the $\hat{\beta }_{j}$ as well as on $v_{i}$.
+
+Fortunately, it can be shown (not easily) that replacing $u_{i}^{2}$ with $\hat{u}_{i}^{2}$ does **not** affect the asymptotic distribution of the $F$ statistic. So we regress the **squared** OLS residuals on all of the
+explanatory variables and test their joint significance. 
+
+Remember: The null hypothesis is homoskedasticity, that is, that Assumption MLR.5 holds.
+
+We do not reject MLR.5 unless the data pretty strongly suggest we should.
+
+That statistic is 
+
+\begin{equation*}F =\frac{R_{\hat{u}^{2}}^{2}/k}{(1 -R_{\hat{u}^{2}}^{2})/(n -k -1)}
+\end{equation*}where $R_{\hat{u}^{2}}^{2}$ is the usual $R$-squared from the regression 
+
+\begin{equation*}\hat{u}_{i}^{2}\text{on}x_{i 1} ,\text{}x_{i 2} \ldots  ,\text{}x_{i k}\text{,}i =1 ,\ldots  ,n
+\end{equation*}(which includes an intercept).
+
+If we forget to square the residuals, and regress $\hat{u}_{i}$ on $x_{i 1}\text{,}$ $x_{i 2} \ldots \text{,}$ $x_{i k}$, the $R$-squared will be exactly zero! (Remember, by construction OLS makes the residuals have zero sample average and zero sample covariance with all explanatory variables.) 
+
+The test from 
+
+\begin{equation*}\hat{u}_{i}^{2}\text{on}x_{i 1} ,\text{}x_{i 2} \ldots  ,\text{}x_{i k}
+\end{equation*}is a version of the **Breusch-Pagan test** for heteroskedasticity}. It is the preferred version. Other versions
+of the B-P test assume that $u$ has a normal distribution (Assumption MLR.6). The current test does not require normality and is actually easier to compute.
+
+### Breusch-Pagan Test
+
+1. Estimate the equation $y =\beta _{0} +\beta _{1} x_{1} +\beta _{2} x_{2} +\ldots  +\beta _{k} x_{k} +u$ by OLS, saving the OLS residuals, $\hat{u}_{i}$. Compute the squared residuals, $\hat{u}_{i}^{2}$. (There is a squared residual for each of the $n$ observations.) 
+
+2. Regress $\hat{u}_{i}^{2}$ on all explanatory variables and compute the usual $F$ test of joint significance of the explanatory variables. 
+
+3. If the $p$-value of the test in step 2 is sufficiently small, reject the null of homoskedasticity and conclude Assumption MLR.5 fails.
+
+Let's see an example:
+```{r}
+library(dplyr)
+data(wage1)
+
+#Step one:
+wage1 <-mutate(wage1, coll= ifelse(educ >15,1,0 ))
+#run & save reg
+wage_reg <- lm(wage ~ female +exper+coll, data = wage1)
+#save residuals
+wage_resids <- wage_reg$residuals
+# Square the residuals! (otherwise it's nonesense, as the residuals will add up to zero)
+wage_resids_sq <- wage_resids^2
+
+# Step two:
+wage_bp <- lm(wage_resids_sq ~ female +exper+coll, data = wage1)
+summary(wage_bp)
+# run regression with same independent variables but switch dependent with saved residuals
+# evaluate F stat that all independent variables are jointly equal to 0 - it is easy to obtain the F statistic we need as it's in the bottom of the output in a regression.
+
+# Step three:
+#If p-value is small, reject null of homoskedasticity.
+#In this case, the p-value is low (evidence that it is *not* homoskedastic (and the alternative is heterskedasticity))
+
+```
+
+This is a very strong statistical rejection of the null of homoskedasticity.
+
+The negative coefficient on femaleshow wages are less variable for women than for men. So average wages are lower for women and there is less variability about that average.
+
+Variability appears to increase with schooling (college).
+
+If we regress the squared residuals only on female we get something interesting. First, we can use the t statistic on female as the test for heteroskedasticity.
+
+```{r}
+summary(lm(wage_resids_sq ~ female, data = wage1))
+```
+
+Second, we directly estimate that the unexplained variance for men as 14.24 while that for women is 14.24 − 8.80 = 5.44
+
+Models with log(y) as the dependent variable often suffer less from heteroskedasticity, let's see if this type of model help alleviate heteroskedasticity in this setting.
+
+```{r}
+#Step one:
+lwage_reg <- lm(log(wage) ~ female +exper+coll, data = wage1)
+lwage_resids <- lwage_reg$residuals
+lwage_resids_sq <- lwage_resids^2
+
+# Step two:
+lwage_bp <- lm(lwage_resids_sq ~ female +exper+coll, data = wage1)
+summary(lwage_bp)
+
+# Step three:
+# The p-value is low, and we can reject the null of homoskedasticity at the 5% level, but not the 1% level
+```
+
+#### White test
+There are other variations of tests for heteroskedasticity. The **White test for heteroskedasticy** includes the explanatory
+variables, as with the B-P test, but also the nonredundant squares and interactions of all explanatory variables. 
+
+In the $l w a g e$ example, the regression would be 
+
+\begin{equation*}\hat{u}^{2}\text{on}f e m a l e\text{,}e x p e r\text{,}c o l l\text{,}e x p e r^{2} ,\text{}c o l l^{2}\text{,}f e m a l e \cdot e x p e r\text{,}f e m a l e \cdot c o l l\text{,}e x p e r \cdot c o l l
+\end{equation*}and the statistic is the joint $F$ test for all explanatory variables. 
+
+White test has the advantage of looking at precisely those departures from the null that invalidate the usual OLS standard errors.
+
+Has the disadvantage of using lots of degrees of freedom when there are lots of regressors in the original model. One can be selective about which squares and cross products to include.
+
+Another special case of the White test is often useful, and it always has two $df$. 
+
+Run the regression 
+
+\begin{equation*}\hat{u}_{i}^{2}\text{on}\hat{y}_{i}\text{,}\hat{y}_{i}^{2}\text{,}i =1 ,\ldots  ,n\text{,}
+\end{equation*}where $\hat{y}_{i}$ denotes the OLS fitted values. 
+
+In the previous example, $p$-value = .530 using this special form, and so the test does not detect heteroskedasticity (whereas the other two tests do.) 
+
+Remember the $\hat{y}_{i}$ are linear functions of $x_{i 1} ,\ldots  ,x_{i k}$. If we make the mistake of using $y_{i}$ and $y_{i}^{2}$ as regressors, the resulting ``test''\ is meaningless.
+
+Reminder: If we do not have the population regression function $E (y\vert \mathbf{x})$ correctly specified, the test for heteroskedasticity can reject even if $V a r (y\vert \mathbf{x})$ is constant. But the conclusion that $u^{2}$ is correlated with the $x_{j}$ (or functions of them) still means that we should make inference about OLS robust to heteroskedasticity, even if we are looking only
+at the linear model as an approximaton to $E (y\vert \mathbf{x})$.
+
+If we find heteroskedasticity after OLS estimation, at a minimum, we should compute the heteroskedasticity-robust standard errors, along with $t$ statistics and confidence intervals. Joint hypotheses tests should also be made heteroskedasticity-robust. In modern practice, this is the most common response (if heteroskedasticity is even tested for in the first place.)
+
+If heteroskedasticity is present and we think $E (y\vert \mathbf{x})$ has been properly modeled, we might want to improve on OLS, as OLS is no longer BLUE (because Assumption MLR.5 fails). To ensure we get a better estimator than OLS we need to know the form of the heteroskedasticity. 
+
+Even if we do not correctly specify the form of heteroskedasticity, sometimes we can do better than OLS by using an incorrect variance function. See Section 8.4 in Wooldridge for a discussion of weighted least squares.
+
+#### LPM \& Heteroskedasticity Reminder
+We noted earlier that when $y$ is binary, there must be heteroskedasticity except in the special case that no $x_{j}$ affects $y$. 
+
+The simplest solution is to use heteroskedasticity-robust inference after OLS. Alternatives such as weighted least squares are cumbersome and are rarely worth the effort. 
+
+Even for binary $y$, the same method to include robust standard errors apply.
+
+Let's see an example, let's create a binary variable and measure if a respondent demands a positive amount of eco friendly apples (=1)
+```{r}
+data("apple")
+
+apple <- mutate(apple, ecobuys = if_else(ecolbs>0,1,0))
+
+apple_lpm<- lm(ecobuys ~ ecoprc+regprc+faminc+numlt5+num5_17+num18_64+numgt64, data = apple)
+
+summary(apple_lpm)
+coeftest(apple_lpm, vcov = vcovHC(apple_lpm, type="HC1"))
+```
+Even though we know there is heteroskedasticity, the usual and robust standard errors are pretty similar.
+
+## Weighted Least Squares
+
+## FGLS
+

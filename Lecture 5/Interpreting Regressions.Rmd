@@ -1006,6 +1006,119 @@ abline(coef = c(mod3_coef[1], mod3_coef[2] + mod3_coef[3]),
 
 ##Linear Probability Model
 
+What if the dependent variable is a dummy variable?
+
+How do we interpret the population model:
+
+\begin{equation}y =\beta _{0} +\beta _{1} x_{1} +\beta _{2} x_{2} +\ldots  +\beta _{k} x_{k} +u
+\end{equation}when $y$ is binary? $y$ can only change from 0 to 1 or 1 to zero. Suppose $\beta _{1} =.035$ and $x_{1} =educ$. What does it mean for a one year increased in $educ$ to increase $y$ by $.035\text{?}$ 
+
+Same problem arises for other discrete variables, such as $y =number$ $of$ $arrests$ or $y =number$ $of$ $children$. Cannot have a fraction more of a child.
+
+The key relationship when $y$ is binary: 
+
+\begin{equation*}E (y\vert \mathbf{x}) =P (y =1\vert \mathbf{x})
+\end{equation*}\par\pagebreak\relax 
+
+
+We call $P (y =1\vert \mathbf{x})$ the \textbf{response probability}. Thus, wen we apply the linear model to binary $y$ we are really saying 
+
+\begin{equation*}P (y =1\vert \mathbf{x}) =\beta _{0} +\beta _{1} x_{1} +\beta _{2} x_{2} +\ldots  +\beta _{k} x_{k}
+\end{equation*}and we call the model the \textbf{linear probability model (LPM)}. 
+
+The important point is that all partial effects are effects on the probability that $y =1$ (sometimes called a ``success''). Since $P (y =0\vert \mathbf{x}) =1 -P (y =1\vert \mathbf{x})$ it is the only probability we need. 
+
+\begin{equation*} \Delta P (y =1\vert \mathbf{x}) =\beta _{j}  \Delta x_{j}\text{holding other explanatory variables fixed}
+\end{equation*}\par\pagebreak\relax 
+
+The sample analog holds as well. When we have the OLS regression line 
+
+\begin{equation*}\hat{y} =\hat{\beta }_{0} +\hat{\beta }_{1} x_{1} +\hat{\beta }_{2} x_{2} +\ldots  +\hat{\beta }_{k} x_{k}\text{,}
+\end{equation*}
+**$\hat{y}$ is now the predicted probability. **
+
+The intercept is the predicted probability when each $x_{j}$ is set to zero (which, as with other regression applications, may not make sense).
+
+$\hat{\beta }_{j}$ measures the change in the **estimated probability** of a ``success''\ when $ \Delta x_{j} =1$, other factors held fixed. 
+
+Just like in any regression application, we can have explanatory variables in logs, quadratics, and interactions as well as binary regressors.
+
+Let's take the following example:
+The variable inlf is one if a woman worked for a wage during a certain year, and zero if not. We estimate a linear probability model to see the effects of variables on the probability of being in the labor force.
+```{r}
+library(wooldridge)
+data("mroz")
+
+summary(lm(inlf~nwifeinc+educ+exper+expersq+age+kidslt6+kidsge6, data = mroz))
+```
+These are the usual OLS t statistics, even though we will show they are not quite valid.
+
+The intercept is not of interest here. The coefficient on nwifeinc (other sources of income) shows a modest effect: if it increases by 20 ($20, 000, about one standard deviation), the probability of being in the labor force falls by .068, or 6.8 percentage points. The t statistic shows it is statistically significant at the 2% level.
+
+Each year of education increases the probability by an estimated .038, or 3.8 percentage points.
+
+Using a linear model for a binary outcome is convenient because estimation is easy and so is interpretation.
+
+Past workforce experience has a positive but diminishing effect. The effect of the first year is about .039, and this diminishes to zero at exper = .039/(2 · .0006) = 32.5. (Only 13 women have experience > 32.)
+
+Having young children has a very large negative effect: being in the labor force falls by .262 for each young child. Almost all of the action is between 0 and 1, with a little from 1 to 2.
+
+It is unwise to extrapolate to extreme values when using any linear model, including this one (values can go above 1
+
+But the LPM does have some shortcomings:
+
+1. The fitted values from an OLS regression are never guaranteed to be between zero and one, yet these fitted values are estimated probabilities.
+
+- This can be slightly embarassing but is rarely a big deal. We usually use the LPM to estimate partial effects, not to make predictions. Further, a natural predictor (see below) is not sensitive to negative fitted values or fitted values above one.
+
+2. The estimated partial effects are constant throughout the range of the explanatory variables, possibly leading to silly estimated effects for large changes. (This is related to predicted probabilities possibly being negative or greater than one.)
+
+- This is more of a problem because we know that, say, a variable with a positive effect on P(y = 1|x) must eventually have a diminishing effect. But the linear model implies a constant effect (when the variable appears by itself).
+
+For example, take a woman who has no other source of income, 25 years of prior work experience, no children, who is 48 years old.
+As a function of $e d u c$ the equation looks like 
+
+\begin{equation*}\widehat{i n l f} =.417 +.038\text{}e d u c
+\end{equation*}
+
+At $e d u c =12$, the predicted probability is $.873$, at $e d u c =14$ it is $.949$, and at $e d u c =16$, $\widehat{i n l f} =1.025$. For the estimated model to truly represent a probability, the effect of education should be diminishing -- that is, the
+next year of education should increase the probability by less than the previous year so that the estimated probability never goes above one.
+
+Using logarithms does not bound the effect, and using quadratics often does not help. (In this example, a quadratic in $e d u c$ gives an estimated \textit{increasing} effect, not a diminishing effect.) with this problem. 
+
+But the LPM does a good job of approximating partial effects if we do not look at extreme values of the explanatory variables.
+
+\textbf{3.} Because $y$ is binary -- and this really has nothing to do with the LPM\ per se -- the LPM must
+exhibit heteroskedasticity except in the one case where no $x_{j}$ affects $P (y =1\vert \mathbf{x})$. This follows because for a binary variable, 
+
+\begin{equation*}V a r (y\vert \mathbf{x}) =p (\mathbf{x})[1 -p(\mathbf{x})]
+\end{equation*}where $p (\mathbf{x}) =\beta _{0} +\beta _{1} x_{1} +\beta _{2} x_{2} +\ldots  +\beta _{k} x_{k}$ is the linear response probability. 
+
+This is a case where we \textit{know} MLR.5 must fail, and we know how. So, currently, we treat the usual $t$ and $F$ tests with suspicion, and the confidence intervals. (Turns out they are often pretty reliable in LPMs.)
+
+Some tweets from the author about LPM (APE = Average Partial Effects):
+![lpm](lpm_wooldridge.png)
+
+![lpm2](lpm2.png)
+
+Another thing to note is that our usual $R^2$ doesn't measure fit as well. 
+Instead, it's easier to think of prediction in terms of "success" and "failures". Is the model better at predicting successes, failures, or is overall, doing a good job predicting both?
+
+The *fraction correctly predicted* is one way to think about fit in LPM:
+$$\bar{y} \times \text{Pr}(\hat{Y}=1|Y=1) + (1-\bar{y}) \times \text{Pr}(\hat{Y}=0|Y=0)$$
+where $\bar{y}= N^{-1}\sum_i^N Y_i$. What is $(1-\bar{y})$?
+
+We need a classification rule, usually (but not necessarily)
+
+$\tilde{y}_i = 1 ~~\text{if}~~ \hat{p}_i \geq 0.5 $ and $\tilde{y}_i = 0 ~~\text{if}~~ \hat{p}_i < 0.5 $. 
+
+This classification rule is up to you as the researcher - what's the cutoff rule that the probability of X be counted as a "success".
+
+Then, we can do all sorts of classifications:
+
+- fraction of correctly predicted successes: $\sum_i  1(\tilde{y}_i = 1 \wedge Y_i=1)/ \sum_i Y_i$
+- fraction of correctly predicted failures: $\sum_i  1(\tilde{y}_i = 0 \wedge Y_i=0)/\sum_i 1({Y}_i=0)$
+- fraction correctly predicted: $\sum_i  1(\tilde{y}_i = Y_i) / N$.
 
 
 ## Residual Analysis
@@ -1048,7 +1161,8 @@ We can also observe our residuals and do a visual inspection of residuals - reme
 
 In the first graph, we can see the residuals versus the fitted. This graph, as we talked about before, shows the presence of heteroskedasticity. (Remember that the average of our residuals should be 0, so that red line shows just that - it's approximately 0). We suspect heteroskedasticity because of the "funnel" shape. The scale-location graph similarily shows this pattern (we'd be shocked otherwise, after all the SER is the average mistake we make in our regression and is a measure of fit)
 
-This is useful to look at to inspect issues with time-series, which we'll get to later. 
+This is useful to look at to inspect issues with time-series.
+
 ```{r}
 plot(school)
 ```
