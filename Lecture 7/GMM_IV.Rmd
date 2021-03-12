@@ -1,0 +1,7 @@
+---
+title: "GMM & IV"
+output: html_notebook
+---
+
+One big problem that we often face in regression analysis is endogeneity. That pesky break of assumption 4. **Generalized Method of Moments** is a general approach to solving this issue. In fact, OLS is a special case of GMM. 
+

@@ -7,6 +7,8 @@ output: html_notebook
 
 [Details on the optimization problem that LM solves can be found here](https://medium.com/@andrew.chamberlain/a-simple-explanation-of-why-lagrange-multipliers-works-253e2cdcbf74])
 
+This test doesn't test for heteroskedasticity. It's a test that's similar to the Wald test and is valid asymptotically (therefore only useful for large datasets). This test can see if adding variables the model is a significant improvement. It's used to see if one model is better than another when other measures of fit (like the R2) are not appropriate. More details about the differences/similarities of these test can be found [here](https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faqhow-are-the-likelihood-ratio-wald-and-lagrange-multiplier-score-tests-different-andor-similar/).
+
 This test statistic is useful for asymptotic analysis, as well. This test statistic relies on the Gauss-Markov assumptions - the same assumptions that justify the t and f statistic in large samples (and we don't need the normality assumption)
 
 Take the population model with k independent variables:
@@ -24,9 +26,9 @@ LM statistic requires estimation of the *restricted* model only, so let's assume
 \begin{equation}
 y = \tilde{\beta_0} + \tilde{\beta_1} + \dots + \tilde{\beta_{k-qX_k-q}} +\tilde{u}
 \end{equation}
-Where $\tilde$ indicates that the estimates are from the restricted model. 
+Where tilde indicates that the estimates are from the restricted model. 
 
-IF the omitted variables truly have zero population coefficients, then the error term should be uncorrelated with each of these variables in the sample.   We must use all of the regressors - the omitted regressors in the restricted model are correlated with the regressors that appear in the restricted model:
+IF the omitted variables truly have zero population coefficients, then the error term should be uncorrelated with each of these variables in the sample. We must use all of the regressors - the omitted regressors in the restricted model are correlated with the regressors that appear in the restricted model:
 
 \begin{equation}
 \tilde{u} on X_1, x_2, \dots, x_k
@@ -39,11 +41,14 @@ If our null assumption is true, the R-squared in our above equation should be 0.
 As it turns out, the sample size multiplied by the R-squared of the auxiliary regression is dristributed as a chi-squared random variable with q degrees of freedom - so we use the chi-squared variable.
 
 All that we care about in the test statistic is the number of restrictions being tested (q), the size of the auxiliary R-squared and the sample size.
+
+
 ```{r}
+library(wooldridge)
 data("crime1")
 
 #Step 1, regress y on restricted set of independent variables
-crime <- lm(narr86 ~ pcnv +  ptime86 + qemp86, data = crime1)
+crime <- lm(narr86 ~ pcnv + ptime86 + qemp86, data = crime1)
 
 #store the residuals
 crime_resids <- crime$residuals
@@ -291,6 +296,10 @@ data(wage1)
 
 #Step one:
 wage1 <-mutate(wage1, coll= ifelse(educ >15,1,0 ))
+# creating a new variables called coll that is equal to 1 if number of years of education is greater than 15, 0 otherwise.
+# ifelse - conditional statement
+
+
 #run & save reg
 wage_reg <- lm(wage ~ female +exper+coll, data = wage1)
 #save residuals
@@ -306,7 +315,7 @@ summary(wage_bp)
 
 # Step three:
 #If p-value is small, reject null of homoskedasticity.
-#In this case, the p-value is low (evidence that it is *not* homoskedastic (and the alternative is heterskedasticity))
+#In this case, the p-value is low (evidence that it is *not* homoskedastic (and the alternative is heteroskedasticity))
 
 ```
 
@@ -362,7 +371,7 @@ Run the regression
 
 In the previous example, $p$-value = .530 using this special form, and so the test does not detect heteroskedasticity (whereas the other two tests do.) 
 
-Remember the $\hat{y}_{i}$ are linear functions of $x_{i 1} ,\ldots  ,x_{i k}$. If we make the mistake of using $y_{i}$ and $y_{i}^{2}$ as regressors, the resulting ``test''\ is meaningless.
+Remember the $\hat{y}_{i}$ are linear functions of $x_{i 1} ,\ldots  ,x_{i k}$. If we make the mistake of using $y_{i}$ a    nd $y_{i}^{2}$ as regressors, the resulting ``test''\ is meaningless.
 
 Reminder: If we do not have the population regression function $E (y\vert \mathbf{x})$ correctly specified, the test for heteroskedasticity can reject even if $V a r (y\vert \mathbf{x})$ is constant. But the conclusion that $u^{2}$ is correlated with the $x_{j}$ (or functions of them) still means that we should make inference about OLS robust to heteroskedasticity, even if we are looking only
 at the linear model as an approximaton to $E (y\vert \mathbf{x})$.
@@ -394,6 +403,187 @@ coeftest(apple_lpm, vcov = vcovHC(apple_lpm, type="HC1"))
 Even though we know there is heteroskedasticity, the usual and robust standard errors are pretty similar.
 
 ## Weighted Least Squares
+If we know what the form of the variance is (as a function of explanatory variables), then Weighted Least Squares (WLS) is more efficient than OLS.  If you know something about the variance, then we can directly model it and incorporate it into our estimation method.
+
+We can assume
+\begin{equation}
+Var(u|x) = \sigma^2h(x)
+\end{equation}
+
+We need to model h(x) so we can adjust our standard errors appropriately. 
+
+Let's take the example of the relationship between savings and income:
+\begin{equation}
+sav_i = \beta_0 +\beta_inc_i + u_i
+\end{equation}
+
+And we know something about the relationship of income and savings in terms of the error term, we know that as income rises, the variability of savings becomes larger - more precisely, the variance is proportional to income. Since income is positive, we also know that the variance will always be positive.
+
+\begin{equation}
+Var(u|x) = \sigma^2inc_i
+\end{equation}
+
+We will take our original equation and transform it into a an equation that has homoskedastic errors.  Since we know $h_i$ is just a function of $x_i$,  then $u_i/\sqrt{h_i}$ has a zero expected value conditional on x.  All we care about is that the variance has a constant variance conditional on X. 
+
+\begin{equation}
+E[(u_i/\sqrt{h_i})^2] = E(u^2)/\sqrt{h_i}) = (\sigma^2h_i)/h_i = \sigma^2
+\end{equation}
+
+We can then just divide our entire regression model by $\sqrt{h_i}$:
+\begin{equation}
+y_i/\sqrt{h_i} = \beta_0/\sqrt{h_i} +\beta_1(x_{i1}/\sqrt{h_i}) +\beta_2(x_{i2}/\sqrt{h_i}) + (u_i/\sqrt{h_i})
+\end{equation}
+
+In our income example, it it would just be:
+
+\begin{equation}
+sav_i/\sqrt{inc} = \beta_0(1/\sqrt{inc_i})+ \beta_1\sqrt{inc_i} + u_i
+\end{equation}
+
+With the above regression, our CLR assumptions are met, but the estimators are not longer going to be OLS. Instead, they are generalized least squares (GLS) and it accounts for heteroskedastcity in the errors - it is more efficient in this case than OLS. This particular estimator that orrected for heteroskedasticiy are the ***weighted least squares estimators** since each squared residual is weighted by $1/h$.  What this does is give less weight to each observation with a higher error variance (we correct for heterskedasticity by recalibrating the importance of the variance based on those we know have higher variance). 
+
+Example
+```{r}
+data(k401ksubs)
+k401ksubs <- mutate(k401ksubs, age25 = age-25,  single = if_else(k401ksubs$fsize ==1, 1,0))
+
+k401ksubs_single <-subset(k401ksubs, fsize==1)
+ols<- lm(nettfa ~ inc + I(age25^2) + male + e401k, k401ksubs_single )
+summary(ols)
+
+#plot(fitted(ols), residuals(ols))
+ 
+wts <- 1/sqrt(k401ksubs_single$inc)
+ 
+wls <- lm(nettfa ~ inc + I(age25^2) + male + e401k, k401ksubs_single, weights=wts)
+summary(wls)
+```
+
+In general, we might as well use robust standard errors with WLS. We may model it correctly, yes, no issues, but if we allow for our variance model to be fully flexible with robust standard errors, that will provide more flexibility. We can see these changes below, where male and e401k is smaller 
+
+```{r, results='asis'}
+library(stargazer)
+ols_r<-coeftest(ols, vcov = vcovHC(ols, type="HC1"))
+wls_r<- coeftest(wls, vcov = vcovHC(wls, type="HC1"))
+stargazer( ols, ols_r, wls,wls_r, type = "html",
+           results = 'asis',message = FALSE, echo = FALSE, notes.append = FALSE, header = FALSE, single.row = TRUE,  column.labels = c("OLS", "OLS robust", "WLS", "WLS robust"))
+
+```
+
+
+There are other scenarios in which WLS might come in handy - when we have data limited by some nested group.  Perhaps (and this happens often) we don't have individual level data available. Instead, we have averages of data across some group or region.   
+
+For example, a firm has employees that contribute to a 401k and we only have average values of contributes, earnings and age by employer (we don't have individual level data). Imagine we have the regression model:
+
+\begin{equation}
+\bar{contrib} = \beta_0 + \beta_1\bar{earns_i}+\beta_2\bar{age_i}+\beta_3mrate + \bar{u}_i
+\end{equation}
+
+where $\bar{u}_i = m_i^{-1}\sum^{mi}_{e=1}u_{i,e}$, the average error across all employees in a firm.
+
+We'd run our OLS and is all well?  Well, it depends on what we think how individuals behave within firm size. Is there more variance of employer contributions in larger firms? If we believe that's true, then we still have this heteroskedasticity problem. What's worse, is the robust standard errors can't fix it for you, since we don't have the individual level data to calibrate the heteroskedasticity standard errors. We need to make assumptions about how the size of firm (which we have data on) effects the variance. Overall, it's the size of the firm that's messing with our variance. Typically, if we have more observations this will decrease our variance, and we could think that this is true within a firm - the more employees we have, the small the variance. If we think that our variance is $var(\bar{u_i}) = \sigma^2/m_i$, where the variance of the error term decreases with firm size, then we can model this directly by weighing or variance by the number of employees in a firm $h = 1/m$ where m is the number of employees at a firm.  Thus, larger firms will get more weight than smaller firms. 
+
+You can expand this logic to city, county, state, county level issues where we would model population size in our variance. 
+
 
 ## FGLS
+
+WLS is great for when heteroskedasticity is known (or at least there is some data you can use that you can argue fixes the issue based on your model). Sometimes, finding the exact function is hard, another approach is to estimate unknown parameters h.
+
+Asymptotically, FGLS is consistent and efficient, so our usual t and F stats can be trusted. This is NOT true in small samples. So if you're using state level data, for example, FGLS will not be consistent. 
+
+Recall:
+\begin{equation}
+Var(u|x) = \sigma^2h(x)
+\end{equation}
+
+This is **Feasible Generalized Least Squares** - where we will estimate the function h. 
+
+\begin{equation}
+Var(u|x) = \sigma^2exp(\sigma_0 + \sigma_1x_1 + \dots + \sigma_k x_k)v
+\end{equation}
+
+where v has a mean equal to unity, conditional on x = (x_1, +\dots + x_2). If v is independent of x, we can write:
+
+\begin{equation}
+log(u^2) = \alpha_0 +\sigma_1x_1 + \dots + \sigma_kx_k + e
+\end{equation}
+
+where e has a 0 mean and is independent of x (our usual OLS assumptions)
+
+We take the log on both sides from the above equation and replace unobserved u with our OLS residuals and run the regression.
+
+\begin{equation}
+log(\hat{u}^2) on x_1 \dots x_2
+\end{equation}
+
+What we need are these fitted values to then finall estimate $h_i$ of which can then use that stored estimate to implement our WLS.
+
+It's just multi-staged regressions and some plug and estimate procedures.
+
+What we're doing here is saying that if we can find an estimated pattern of our residual - some trend that can I find in my residuals, well I can just isolate that information and include it in WLS estimates. This way, I don't make assumptions on the form of heteroskedasticity. The trade off is that we are assuming our classic OLS assumptions are valid throughout this procedure.  
+
+Let's try it.
+
+```{r}
+data("smoke")
+
+#1. Run regression of y on x_1 ... X_k, get the residuals
+ols <- lm(cigs ~ lincome + log(cigpric)+educ+age +I(age^2) + restaurn, data = smoke)
+summary(ols)
+ols_resid <- ols$residuals
+#2. Create(log(u^2))
+# We must square the residuals because they will equal zero otherwise -> OLS is doing its job. Then you log the results. Logging helps keep the numbers in a reasonable range (and ensures they aren't gigantic)
+lols_resid2 <- log(ols_resid^2)
+
+#3 Run the regression using our residuals from step 2 on our x_1... x_k and get the fitted residuals from that regression (again)
+resid_fit <- lm(lols_resid2 ~ lincome + log(cigpric)+educ+age +I(age^2) + restaurn, data = smoke)
+hhat_log <- resid_fit$residuals
+
+#4 Exponentiate the fitted values (recall the log step)
+hhat <- exp(hhat_log)
+hhat_fin <-1/hhat
+
+#5 Estimate using WLS 1/h_hat
+fgls <- lm(cigs ~ lincome + log(cigpric)+educ+age +I(age^2) + restaurn, data = smoke, weights=hhat_fin)
+
+
+#We can also test FGLS model to see if we still see heteroskedasticity
+```
+
+```{r, results='asis'}
+library(stargazer)
+stargazer( ols,fgls, type = "html",
+           results = 'asis',message = FALSE, echo = FALSE, notes.append = FALSE, header = FALSE, single.row = TRUE)
+
+```
+
+
+OLS and WLS will always have differences in the estimates, what matters is if it's sufficiently large differences. It's not a big deal if it's the same sign and our conclusions remain the same.  If there are large differences, this may suggest that there are *other* Gauss-Markov assumptiosn that are violated (particularly our fave zero conditional mean assumption).  This could suggest functional form mispecification.
+
+WLS is still unbiased. The weighted error is uncorrelated with our regressors so long as assumption 4 is not violated (recall our exercise in PS1). 
+
+If our WLS is misspecified variance function - the standard errors and test stats are no longer valid
+
+```{r}
+data(wage1)
+
+
+#Step one:
+fgls_resids <- (fgls$residuals)^2
+
+# Step two:
+fgls_bp <- lm(fgls_resids ~ lincome + log(cigpric)+educ+age +I(age^2) + restaurn, data = smoke)
+# run regression with same independent variables but switch dependent with saved residuals
+# evaluate F stat that all independent variables are jointly equal to 0 - it is easy to obtain the F statistic we need as it's in the bottom of the output in a regression.
+
+# Step three:
+summary(fgls_bp)
+#Given low R2, probably no heteroskedasticity. 
+```
+
+
+
+
+
 

@@ -593,7 +593,7 @@ The simple regression is a comparison of means. Where we are testing
 
 $H_0: \mu_f = \mu_m$
 
-where μf is the population average wage for women and μm is the popula- tion average wage for men. The t statistic and confidence interval are directly reported.
+where μf is the population average wage for women and μm is the population average wage for men. The t statistic and confidence interval are directly reported.
 
 We can see the value is 8.279 and strongly reject the null.
 
