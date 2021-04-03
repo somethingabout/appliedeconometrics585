@@ -1,0 +1,190 @@
+---
+title: "GMM & IV"
+output: html_notebook
+---
+
+One big problem that we often face in regression analysis is endogeneity. That pesky violation of assumption 4. **Generalized Method of Moments** is a general approach to solving this issue. In fact, OLS is a special case of GMM - and almost every estimator is a special case of GMM.
+
+It is of no surprise, then, that the standard IV estimator is a special case of a generalized method of moments (GMM) estimator. We're going to go into detail about IV this week and relate this to GMM. 
+
+## IV
+
+We often use proxies to deal with unobservables. However, sometimes our proxies are not good enough.
+
+Many data sets do not have good proxies for unobservables, or one loses lots of data in using them. 
+
+Instead we can use \textbf{instrumental variables} estimation to allow a RHS variable to be correlated with the unobservables.\par\pagebreak\relax 
+
+**EXAMPLE:** Effects of Class Size on Student Performance 
+
+ Consider a model in the population: 
+
+\begin{equation*}s c o r e =\beta _{0} +\beta _{1} c l a s s i z e +u
+\end{equation*}
+
+where we think $c l a s s i z e$ is endogenous: 
+
+\begin{equation*}C o v (c l a s s i z e ,u) \neq 0.
+\end{equation*}
+
+ We could try to proxy for the omitted variables in $u$, perhaps using family background and socioeconomic variables. But we may not be able to sufficiently capture everything in $u$ that affects $s c o r e$. 
+
+ Collecting panel data on students can be helpful but is more difficult to get. Plus, $c l a s s i z e$ may not change much over time. (Better funded schools tend to\par\pagebreak\relax 
+
+ We can solve the endogeneity problem if we can collect data on a variable, $z$, that satisfies two restrictions. 
+
+\begin{equation*}y =\beta _{0} +\beta _{1} x +u
+\end{equation*}
+
+1. $z$ is \textbf{exogenous} to the equation: 
+
+\begin{equation*}C o v (z ,u) =0
+\end{equation*}
+
+2. $z$ is \textbf{relevant} for explaining $x$: 
+
+\begin{equation*}C o v (z ,x) \neq 0
+\end{equation*}\par\pagebreak\relax 
+
+\subsubsection*{Why we can't directly test $C o v (z ,u) =0$}
+ It may be tempting to devise a test based on the sample correlation between $z_{i}$ and $\hat{u}_{i}$, where $\hat{u}_{i}$ are the residuals obtained from a regression of $y_{i}$ on $x_{i}$. 
+ 
+  The problem with this test is that if $x$ is endogeneous, $\hat{u}_{i}$ are inconsistent estimates of the population regression errors $u_{i}$. 
+  
+Thus, we learn nothing by studying the correlation between $z$ and $\hat{u}$ 
+
+Another mistake would be to regress $y_{i} =\beta _{0} +\beta _{1} x_{i} +\beta _{2} z_{i} +u_{i}$ and test $\beta _{2} =0$ to see if $z_{i}$ satisfies the exogeneity requirement. 
+
+ This will also not work since the estimated coefficients from this regression will be inconsistent due to the endogeneity of $x$  
+
+\textbf{A valid instrument $z$ needs to satisfy $C o v (z ,u) =0$ and $C o v (z ,x) \neq 0$} 
+
+An important difference between these two requirements: We cannot test (1), but we can determine (usually with high confidence) whether
+(2) is true. 
+
+ How can we use a variable $z$ satisfying these two requirements? 
+
+ Take the covariance of $z$ with both sides of the equation 
+
+\begin{equation*}y =\beta _{0} +\beta _{1} x +u
+\end{equation*}to get 
+
+\begin{equation*}C o v (z ,y) =\beta _{1} C o v (z ,x) +C o v (z ,u)\text{.}
+\end{equation*}\par\pagebreak\relax 
+
+ Now use $C o v (z ,u) =0$ (exogeneity) to get 
+
+\begin{equation*}C o v (z ,y) =\beta _{1} C o v (z ,x)\text{.}
+\end{equation*} Next, use $C o v (z ,x) \neq 0$ (relevance) to get 
+
+\begin{equation*}\beta _{1} =\frac{C o v (z ,y)}{C o v (z ,x)}
+\end{equation*}
+
+ We have written $\beta _{1}$ as two population moments in observable variables.
+
+ Given a random sample $\{(y_{i} ,x_{i} ,z_{i}) :i =1 ,\ldots  ,n\}$, use the sample covariances to estimate the population covariances. (Method
+of moments estimation). 
+
+ This gives the IV estimator of $\beta _{1}$. 
+ 
+ 
+ IV is a *Two Staged Least Squares* Estimation method. 
+ 
+ 
+ 
+
+\begin{equation*}\hat{\beta }_{1 ,I V} =\frac{n^{ -1} \sum _{i =1}^{n}(z_{i} -\bar{z}) (y_{i} -\bar{y})}{n^{ -1} \sum _{i =1}^{n}(z_{i} -\bar{z}) (x_{i} -\bar{x})}
+\end{equation*}
+
+ IV estimator is consistent, not unbiased. (Bias can be large if the correlation beween
+$z$ and $x$ is ``small.'')\par\pagebreak\relax 
+
+ The variance of the IV estimator can be large. Under homoskedasticity of $u$, 
+
+\begin{equation*}V a r (\hat{\beta }_{1 ,I V}) \approx \frac{\sigma _{u}^{2}}{n \sigma _{x}^{2} \rho _{x ,z}^{2}}
+\end{equation*}with $\sigma _{u}^{2} =V a r (u)$, $\sigma _{x}^{2} =V a r (x)$ and $\rho _{x ,z} =C o r r (x ,z)$. 
+
+ Comparable formula for OLS (when OLS is consistent): 
+
+\begin{equation*}V a r (\hat{\beta }_{1 ,O L S}) \approx \frac{\sigma _{u}^{2}}{n \sigma _{x}^{2}}
+\end{equation*}\par\pagebreak\relax 
+
+ So, as a rough rule of thumb, the standard error of the IV estimator is about 
+
+\begin{equation*}\frac{1}{r_{x z}}
+\end{equation*}larger than that for OLS, where $r_{x z}$ is the sample correlation between $x_{i}$ and $z_{i}$. 
+
+We can think of this factor as the cost of doing IV when we could be doing OLS. (If OLS is inconsistent, the variance comparison makes
+little sense.) 
+
+ Often $r_{x z}$ is small, so IV standard error is ``large.''\ A large $n$ can help offset.
+
+We can compute a heteroskedasticity robust or nonrobust standard error and conduct large-sample inference using $t$ statistics and confidence intervals. 
+
+ No restrictions on the nature of $x_{i}$ or $z_{i}$. For example, each could be binary, or just one of them. 
+
+ 
+ 
+ To even proceed with IV, we need to first demonstrate that $z_{i}$ helps to predict $x_{i}$ (and in the direction suggested by economics or common sense). Easiest way is to just regress $x_{i}$ on $z_{i}$ and do a robust $t$ test. 
+
+ There is a stream of research on so-called ``weak instruments'' says that, in this simple case, the $t$ statistic from this regression should be at least $3.2 \approx \sqrt{10}$-- much higher than just a rejection at the standard 5\% level.
+ 
+And an even more recent paper by [Lee et. al. (2020)](https://arxiv.org/pdf/2010.05058) suggests that it should be at least a whopping 104 (which makes IV estimation less desirable - though, jury is still out on this)
+
+ Where might instrumental variables come from?
+
+Randomized eligibility can work well as an IV for participation in a program. So $x_{i} =1$ if person actually participates. $z_{i} =1$ if the person was made eligible. 
+
+ In the Tennessee STAR program, some students were randomly made eligible for smaller class sizes. So $x_{i}$ can be the actual class size, $z_{i} =1$ if student $i$ was made eligible for a small class size.
+
+ Caution: Just because a variable is randomized does not make it exogenous to a model. Economic agents can change their behavior!
+
+
+ Example due to Angrist and Evans (1998, \textit{American Economic Review}). Weekly hours equation 
+
+\begin{equation*}h o u r s =\beta _{0} +\beta _{1} k i d s +u
+\end{equation*}for the population of women with at least two children (so $k i d s \geq 2$). One proposed IV is $s a m e s e x$, equal to one of the first two children have the same gender.
+
+ Even if gender is exogenous, the family's budget constraint is subsequently affected. (Kids of the same gender can more easily share
+a room, clothes, and toys.) 
+
+ Following uses a (small!) subset of data from Angrist and Evans. Note how large the sample size is, yet IV estimator is barely statistically
+significant.
+
+Let's see this in action.
+
+Here is the [description](http://fmwww.bc.edu/ec-p/data/wooldridge/labsup.des) of the dataset
+
+```{r}
+library(dplyr)
+
+labsup <- read.csv('/Users/mkaltenberg/Dropbox (Personal)/Pace/ECO585/R notebooks/Data/labsup.csv')
+
+selected_lab <-select(labsup, hours, samesex, kidcount)
+
+summary(selected_lab)
+
+```
+
+Roughly 50% have both boys or both girls, as we should expect.
+
+
+
+Run OLS
+```{r}
+summary(lm(hours ~ kidcount, data = labsup))
+```
+
+* So each child (above two) decreases weekly hours, on average, by 2.66.
+
+ Now do IV. Need to first check that samesex is relevant for kids:
+```{r}
+summary(lm( kidcount ~ samesex, data = labsup))
+
+```
+
+* t statistic is above six, so okay to proceed (assuming samesex is exogenous! 
+
+
+
+
