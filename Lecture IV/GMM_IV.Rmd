@@ -101,7 +101,16 @@ An important difference between these two requirements: We cannot test (1), but 
 \begin{equation*}\hat{\beta }_{1 ,I V} =\frac{n^{ -1} \sum _{i =1}^{n}(z_{i} -\bar{z}) (y_{i} -\bar{y})}{n^{ -1} \sum _{i =1}^{n}(z_{i} -\bar{z}) (x_{i} -\bar{x})}
 \end{equation*}
 
-IV estimator is *consistent*, but not always unbiased.  Bias can be large if the correlation between  $z$ and $x$ is ``small.'' This is something to check for to get a general sense of the size of the bias - this problem is known as a weak instrument (more on this in a moment)
+IV estimator is *consistent*, but not unbiased. 
+
+An estimator is **consistent** if, as the sample size increases, the estimates (produced by the estimator) "converge" to the true value of the parameter being estimated. To be slightly more precise - consistency means that, as the sample size increases, the sampling distribution of the estimator becomes increasingly concentrated at the true parameter value.
+
+An estimator is **unbiased** if, on average, it hits the true parameter value. That is, the mean of the sampling distribution of the estimator is equal to the true parameter value.
+
+The two are not equivalent: Unbiasedness is a statement about the expected value of the sampling distribution of the estimator. Consistency is a statement about "where the sampling distribution of the estimator is going" as the sample size increases.
+
+
+Bias can be large if the correlation between  $z$ and $x$ is ``small.'' This is something to check for to get a general sense of the size of the bias - this problem is known as a weak instrument (more on this in a moment)
 
  Also good news - no restrictions on the nature of $x_{i}$ or $z_{i}$. For example, each could be binary, or just one of them.
 
@@ -299,8 +308,7 @@ What to do if you have weak instruments?
 * Get better instruments (Ha! Easier said than done...)
 * If you have extra instruments, drop the weakest ones (dropping an irrelevant instrument
 should increase the first-stage F)
-* Get advice about more sophisticated kinds of IV analysis with weak instruments (such
-as Anderson-Rubin test statistics, Anderson-Rubin confidence intervals, LIML - a whole subfield)
+* Get advice about more sophisticated kinds of IV analysis with weak instruments (such as Anderson-Rubin test statistics, Anderson-Rubin confidence intervals, LIML - a whole subfield)
 
 
 ### Where might instrumental variables come from?
@@ -753,7 +761,7 @@ We discussed the last one, and the Wu-Hausman test we will discuss in panel data
 The test for weak instruments might be unreliable with more than one endogenous regressor, though, because there is indeed one  F-statistic for each endogenous regressor.
 
 An alternative is the Cragg-Donald test based on the statistic:
-$$F = \frac{N-K-W}{M}\frac{r_{K}{1-r_{K}}$$
+$$F = \frac{N-K-W}{M}\frac{r_{K}}{1-r_{K}}$$
 where  W  is the number of exogenous regressors,  K  is the number of endogenous regressors,  M  is the number of external instruments, and $r_{KM$  is the lowest canonical correlation (a measure of the correlation between the endogenous and the exogenous variables).Canonical correlations are a generalization of the usual concept of a correlation between two variables and attempt to describe the association between two sets of variables.
 
 The Cragg-Donald statistic reduces to the usual weak instruments F-test when the number of endogenous variables is K = 1. Critical values for this test statistic have been tabulated by Stock and Yogo (2005), so that we can test the null hypothesis that the instruments are weak, against the alternative that they are not, for two particular consequences of weak instruments.
