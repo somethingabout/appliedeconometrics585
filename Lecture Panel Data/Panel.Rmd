@@ -167,7 +167,7 @@ cunem_diff = crime2$unem[crime2$d87==0] - crime2$unem[crime2$d87 == 1]
 
 first_diff <-lm(crmrte_diff ~ cunem_diff)
 summary(first_diff)
-robust.se(first_diff)
+
 ```
 * The intercept means that, if the unemployment rate did not change, the crime rate would be predicted to increase by about 15 crimes per 1,000 people.
 * The coefficient on cunem is statistically significant and of the sign we might expect: a one percentage point increase in the unemployment rate increases the crime rate by about 2.2 crimes per 1,000 people.
@@ -180,7 +180,7 @@ The same differencing strategy works if $x_{i t}$ is a binary program indicator.
 
 In particular, differencing a dummy variable is fine. We interpret the model as if we have estimated it in levels and controlled for $a_{i}$. 
 
-In many program evaluation settings no units are treated at $t =1$ and some are treated at $t =2$, in which case $\Delta x_{i} =x_{i 2} -x_{i 1} =x_{i 2}$, so putting in $ \Delta x_{i}$ is the same as putting in the treatment dummy for the second time period.
+In many program evaluation settings no units are treated at $t =1$ and some are treated at $t =2$, in which case $\Delta x_{i} =x_{i 2} -x_{i 1} =x_{i 2}$, so putting in $\Delta x_{i}$ is the same as putting in the treatment dummy for the second time period.
 
 
 #### Example Effects of Job Training Grant on Scrap Rates 
@@ -559,7 +559,8 @@ If we forget the lag, we get a much smaller effect of contemporaneous grant beca
 The two-period, before-after setting is a special case of a more general policy analysis framework when $T \geq 2$. 
 
 \begin{equation*}y_{i t} =\eta _{1} +\alpha _{2} d 2_{t} +\ldots  +\alpha _{T} d T_{t} +\beta  w_{i t} +\boldsymbol{x}_{\mathbf{i} \mathbf{t}} \mathbf{\psi } +a_{i} +u_{i t} ,t =1 ,\ldots  ,T
-\end{equation*}$\rightarrow $ $w_{i t}$ is the binary intervention indicator and $\beta $ estimates the average treatment effect of the policy 
+\end{equation*}
+$w_{i t}$ is the binary intervention indicator and $\beta$ estimates the average treatment effect of the policy 
 
 To allow $w_{i t}$ to be systematically related to the unobserved fixed effect $a_{i}$, we estimate the regression with either First Differencing or Fixed Effects, using cluster-robust standard errors. 
 We can also include lags of the policy intervention $w_{i t -1} ,w_{i ,t -2 ,\ldots }$ 
@@ -597,7 +598,7 @@ an estimating equation. As with FD, we interpret $\beta _{1}$ in the levels equa
 There is yet another way to compute $\hat{\beta }_{1}$. Keep the original data, $y_{i t}$ and $x_{i t}$, and run a regression of $y_{i t}$ on $N$ dummy variables (one for each $i$) and $x_{i t}$. Called the "dummy variable" regression. Often not practical when $N$ is large. 
 
 Stata reports a "constant," or "intercept," with
-FE estimation. But $\beta _{0}$ gets eliminated by the FE transformation, so what is the estimated intercept? It is the average of the $N$ coefficients on the dummy variables (rarely of interest).
+FE estimation. But $\beta_{0}$ gets eliminated by the FE transformation, so what is the estimated intercept? It is the average of the $N$ coefficients on the dummy variables (rarely of interest).
 
 Like FD, FE can be applied with $T \geq 2$. An interesting algebraic fact is that FD and FD are numerically identical when $T =2$. For $T >2$, they are different. Typically find larger differences for larger $T$. 
 
@@ -794,7 +795,7 @@ Let's try Fixed Effects
 
 ```{r}
 # so, here, we are doing a two-way fixed effects model using the option "twoways"
-fixed_tw_wage <- plm(lwage~educ+exper+union+married, 
+fixed_wage <- plm(lwage~educ+exper+union+married, 
                data = wagepan, 
                index = c("nr", "year"), 
                model = "within", 
@@ -826,8 +827,11 @@ We have covered four estimators:
 
 POLS on the levels is usually deficient, unless we include things like lagged $y$ (not allowed in the other methods). With good controls and lags of $y$, we might be able to make a convincing analysis. But many economists prefer unobserved effects models. 
 
-In general, we would prefer RE to POLS: $\text{\quad \quad } \rightarrow $ RE removes the fraction $\theta $ of $a_{i}$ from the error term, so it likely has less bias (inconsistency) than POLS  $ \rightarrow $ RE tends to produce more efficient estimators than POLS as it removes at least some, if not all, of the serial
-correlation in the error term. 
+In general, we would prefer RE to POLS because:
+
+* RE removes the fraction $\theta$ of $a_{i}$ from the error term, so it likely has less bias (inconsistency) than POLS  
+
+* RE tends to produce more efficient estimators than POLS as it removes at least some, if not all, of the serial correlation in the error term. 
 
 ##### FD versus FE
 
@@ -858,7 +862,7 @@ With unbalanced panels, we will drop units that only have only one time period o
 
 Dropping units with only one time period does not cause bias or inconsistency 
 
- Those units for which $T_{i} =1$ contribute nothing to learning about $\beta _{j}$ in an FE environment, so dropping them does not affect our estimates. 
+Those units for which $T_{i} =1$ contribute nothing to learning about $\beta _{j}$ in an FE environment, so dropping them does not affect our estimates. 
 
 ##### RE versus FE
 
@@ -882,14 +886,14 @@ If $\mathbf{x}_{i t}$ includes time-constant variables $\mathbf{z}_{i}$, then $(
 
 Recall the key RE assumption is $C o v (\mathbf{x}_{i t} ,a_{i}) =0$. With lots of good time-constant controls ("observed heterogeneity," such as industry dummies) might be able to make this condition roughly true. 
 
-The Hausmen test basically tests whether the error term ($u_i$)  is correlated with the regressors ($x_i$). The null hypothesis is they are not correlated (and hence, do not break an assumption of a Random Effects model).
+The Hausman test basically tests whether the error term ($u_i$)  is correlated with the regressors ($x_i$). The null hypothesis is they are not correlated (and hence, do not break an assumption of a Random Effects model).
 
-But if RE and FE give estimates that differ in economically important ways, we want evidence that RE should be rejected in favor
-of FE. (RE usually gives smaller standard errors; sometimes much smaller. So we would use it if we can.)
+But if RE and FE give estimates that differ in economically important ways, we want evidence that RE should be rejected in favor of FE. (RE usually gives smaller standard errors; sometimes much smaller. So we would use it if we can.)
 
 There is a way to directly compare the RE and FE estimators on explanatory variables that change across $i$ and $t$. Called the *Hausman Test*. 
 
 There are 3 caveats to this test:
+
 1. First, strict exogeneity, is maintained under the null and the alternative. Correlation between $x_i$
 and $u_{it}$causes both FE and RE to be inconsistent, and generally  will differ. In order to view the Hausman test as a test of $C o v (\mathbf{x}_{i t} ,a_{i}) =0$ we must maintain strict exogeneity. 
 
@@ -898,10 +902,10 @@ So, think through on whether this exogeneity condition is maintained $E[x_{it}|u
 2. The test is usually implemented assuming that 
 $E(u_{it}|X_i, a_i ) = 0$ holds under the null. This is a stronger because it assumes that the conditional variances are constant and the conditional covariances are zero. This test setup implies that the RE estimator is more effcient than the FE estimator, and it simpliﬁes computation of the test statistic. But we must emphasize that $E(u_{it}|X_i, a_i ) = 0$ is an auxiliary assumption, and it is **not** being tested by the Hausman statistic: the Hausman test has no systematic power against the alternative that Assumption $E[x_{it}|u_{it}]=0$ is true but $E(u_{it}|X_i, a_i ) = 0$ is false. 
 
-3. A third caveat concerns the set of parameters that we can compare. Because the FE approach only identiﬁes coeffcients on time-varying explanatory variables, we clearly cannot compare FE and RE coeffcients on time-constant variables. But there is a more subtle issue: we cannot include in our comparison coeffcients on aggregate time effects—that is, variables that change only across t. As with the case of comparing FE and FD estimates, the problem with comparing coefficients on aggregate time effects is not one of identiﬁcation; we know RE and FE both allow inclusion of a full set of time period dummies.
+3. A third caveat concerns the set of parameters that we can compare. Because the FE approach only identifies coefficients on time-varying explanatory variables, we clearly cannot compare FE and RE coefficients on time-constant variables. But there is a more subtle issue: we cannot include in our comparison coefficients on aggregate time effects—that is, variables that change only across t. As with the case of comparing FE and FD estimates, the problem with comparing coefficients on aggregate time effects is not one of identification; we know RE and FE both allow inclusion of a full set of time period dummies.
 
 
-We can estimate models that include aggregate time e¤ects, time-constant variables, and regressors that change across both i and t, by RE and FE estimation. But no matter how we compute a test statistic, we can only compare the coeffcients on the regressors that change across both i and t. 
+We can estimate models that include aggregate time effects, time-constant variables, and regressors that change across both i and t, by RE and FE estimation. But no matter how we compute a test statistic, we can only compare the coefficients on the regressors that change across both i and t. 
 
 A variable addition test is easier and can be made robust. 
 
@@ -911,16 +915,25 @@ A variable addition test is easier and can be made robust.
 Let $\bar{\mathbf{w}}_{i}$ contain the time averages on the variables that change across $i$ and $t$. We compute them for each $i$. To test whether $a_{i}$ is correlated with $\bar{\mathbf{w}}_{i}$ we add $\bar{\mathbf{w}}_{i}$ as a set of regressors: 
 
 \begin{equation*}y_{i t} =\mathbf{g}_{t} \mathbf{\theta } +\mathbf{z}_{i} \mathbf{\delta } +\mathbf{w}_{i t} \mathbf{\gamma } +\psi  +\bar{\mathbf{w}}_{i} \mathbf{\xi } +r_{i} +u_{i t}
-\end{equation*}where $r_{i}$ is a new unobserved effect: $a_{i} =\psi  +\bar{\mathbf{w}}_{i} \mathbf{\xi } +r_{i}$.
+\end{equation*}
+where $r_{i}$ is a new unobserved effect: $a_{i} =\psi  +\bar{\mathbf{w}}_{i} \mathbf{\xi } +r_{i}$.
 
-The expanded equation can be estimated by RE and we can test $\mathbf{\xi } =\mathbf{0}$. The estimates of $\mathbf{\gamma }$ are the FE estimates! (A useful check on the procedure.) Including $\bar{\mathbf{w}}_{i}$ effectively proxies for $a_{i}$ (even though $r_{i}$ is still in error term). 
+The expanded equation can be estimated by RE and we can test $\mathbf{\xi } =\mathbf{0}$. The estimates of $\mathbf{\gamma}$ are the FE estimates! (A useful check on the procedure.) Including $\bar{\mathbf{w}}_{i}$ effectively proxies for $a_{i}$ (even though $r_{i}$ is still in error term). 
 
 If we find the $\bar{\mathbf{w}}_{i}$ are jointly significant -- use a cluster-robust test! -- then we abandon RE in favor of FE.
 
 ```{r}
+random_wage <- plm(lwage~union+married+d81:d87, data = wagepan, index = c("nr", "year"), model = "random")
 
-#the hausment test
+fixed_wage <- plm(lwage~educ+exper+union+married, 
+               data = wagepan, 
+               index = c("nr", "year"), 
+               model = "within", 
+               effect = "twoways")
+
+#the hausman test
 phtest(random_wage, fixed_wage)
+
 
 # the robust test with additional parameters is:
 phtest(lwage~educ+exper+union+married, data = wagepan, method = "aux",
@@ -928,7 +941,7 @@ phtest(lwage~educ+exper+union+married, data = wagepan, method = "aux",
 
 
 ```
-In the above case, the p-value is low, so we reject the null of a Random Effects Model and therefore use a Fixed Effects model.
+In the above case, the p-value is low, so we reject the null of a Random Effects Model and therefore use a Fixed Effects model. This is true even in the more robust hausman test.
 
 
 When FE and RE are similar, it does not really matter which we choose (although statistical significance can be an issue, in which case we typically go with RE). When they differ by a lot and in a statistically significant way, RE is likely to be inappropriate. Harder is when they differ by a lot practically but are not statistically different. Should we really use RE?
@@ -1031,6 +1044,7 @@ coeftest(fixed_air, vcov = fixed_air_cse)
 
 
 * The FE effect of concen (.169) is less than half of the POLS effect (.360).
+
 * The FE estimate is still statistically significant with fully robust SE.
 Why does dist drop out? It's not time varying! 
 
@@ -1041,7 +1055,7 @@ We need the time average of concen
 # calculate that average of conce across time
 airfare <- airfare %>% group_by(id)%>% mutate(concenbar = mean(concen))
 
-random_air <- plm(lfare~concen+concenbar+ldist+ldistsq , , 
+random_air <- plm(lfare~concen+concenbar+ldist+ldistsq , 
                data =airfare, 
                index = c("id", "year"), 
                model = "random", 
@@ -1060,20 +1074,26 @@ coeftest(random_air, vcov = random_air_cse)
 ```
 
 * So the robust t statistic is 2.62 --- a rejection of RE.
+
 * Coefficient on concenbar is larger than that on concen. Is this picking up persistent effects?
 
 
 ##### Correlated Random Effects
 Another method of choosing between FE and RE is to estimate a Correlated Random Effects (CRE) model \\\relax
 \begin{equation*}y_{i t} =\alpha _{1} +\alpha _{2} d 2_{t} +\ldots  +\alpha _{T} d T_{t} +\beta _{1} x_{i t 1} +\ldots  +\beta _{k} x_{i t k} +\gamma _{1} \bar{x}_{i 1} +\ldots  +\gamma _{k} \bar{x}_{i k} +\delta _{1} z_{i 1} +\ldots  +\delta _{m} z_{i m} +r_{i} +u_{i t}
-\end{equation*}${\Large  \bullet }$ Here, we are including time averages of all time-varying explanatory variables AND all time-constant variables that appear in the
-RE estimation 
+\end{equation*}
+
+Here, we are including time averages of all time-varying explanatory variables AND all time-constant variables that appear in the RE estimation 
 
 Estimating this equation by RE (or even just pooled OLS) yields: 
 \begin{gather*}\hat{\beta }_{C R E ,j} =\hat{\beta }_{F E ,j} ,j =1 ,\ldots  ,k \\
-\hat{\alpha }_{C R E ,t} =\hat{\alpha }_{F E ,t} ,t =1 ,\ldots  ,T\end{gather*}${\Large  \bullet }$ The null hypothesis is that RE is sufficient.  
+\hat{\alpha }_{C R E ,t} =\hat{\alpha }_{F E ,t} ,t =1 ,\ldots  ,T\end{gather*}
 
- This is implemented as $H_{0} :\gamma _{1} =\ldots  =\gamma _{k} =0$ \\\relax ${\Large  \bullet }$ Rejecting this suggests that FE is preferred.  An advantage of CRE is that it allows for estimation of the effects of time-constant explanatory variables, not possible using FE. 
+The null hypothesis is that RE is sufficient.  
+
+This is implemented as $H_{0} :\gamma _{1} =\ldots  =\gamma _{k} =0$
+
+Rejecting this suggests that FE is preferred.  An advantage of CRE is that it allows for estimation of the effects of time-constant explanatory variables, not possible using FE. 
 
 #### Advanced considerations with policy analysis
 We need to be careful if the policy variable $w_{i t}$ reacts to past shocks.  
@@ -1086,14 +1106,16 @@ Estimate the following model with FE:
 \begin{equation*}y_{i t} =\eta _{1} +\alpha _{2} d 2_{t} +\ldots  +\alpha _{T -1} d (T -1)_{t} +\beta  w_{i t} +\delta  w_{i ,t +1} +\boldsymbol{x}_{\mathbf{i} \mathbf{t}} \mathbf{\psi } +a_{i} +u_{i t}
 \end{equation*}
 
- Compute a cluster robust t-statistic for $\hat{\delta }$ 
- This is known as a \textit{falsification test} and rejecting $H_{0} :\delta  =0$ suggests that there is feedback from the error term to the policy variable. 
+Compute a cluster robust t-statistic for $\hat{\delta }$ 
+
+This is known as a \textit{falsification test} and rejecting $H_{0} :\delta  =0$ suggests that there is feedback from the error term to the policy variable. 
 
 Another issue is if trends are unique across individual observations. 
 
 A potential solution is the heterogeneous trend model
 \begin{equation*}y_{i t} =\eta _{1} +\alpha _{2} d 2_{t} +\ldots  +\alpha _{T} d T_{t} +\beta  w_{i t} +\boldsymbol{x}_{\mathbf{i} \mathbf{t}} \mathbf{\psi } +a_{i} +g_{i} t +u_{i t}
 \end{equation*} 
+
 The new term $g_{i} t$ is a unit-specific time trend. 
  
 This allows the policy intervention to not only be correlated with level differences among units (captured by $a_{i}$), but also by trend differences. We can estimate this model by taking first differences 
