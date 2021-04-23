@@ -2187,18 +2187,10 @@ Coefficients:
 <pre class="r"><code># we will use the package plm for panel data
 plm(trmgpa~ spring+season+crsgpa+sat+hsperc, data = gpa3, index = c(&quot;id&quot;, &quot;term&quot;), model = &quot;pooling&quot;)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG5Nb2RlbCBGb3JtdWxhOiB0cm1ncGEgfiBzcHJpbmcgKyBzZWFzb24gKyBjcnNncGEgKyBzYXQgKyBoc3BlcmNcblxuQ29lZmZpY2llbnRzOlxuKEludGVyY2VwdCkgICAgICBzcHJpbmcgICAgICBzZWFzb24gICAgICBjcnNncGEgICAgICAgICBzYXQgICAgICBoc3BlcmMgXG4gLTIuMjgxNjIzMyAgLTAuMDI4MTgyNSAgIDAuMDYwNTM5OSAgIDEuMTQ1OTE3NyAgIDAuMDAxOTQ2MCAgLTAuMDA5OTYzMSBcbiJ9 -->
-<pre><code>
-Model Formula: trmgpa ~ spring + season + crsgpa + sat + hsperc
-
-Coefficients:
-(Intercept)      spring      season      crsgpa         sat      hsperc 
- -2.2816233  -0.0281825   0.0605399   1.1459177   0.0019460  -0.0099631 </code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gcGxtKHRybWdwYSB+IHNwcmluZyArIHNlYXNvbiArIGNyc2dwYSArIHNhdCArIGhzcGVyYywgZGF0YSA9IGdwYTMsICA6IFxuICBjb3VsZCBub3QgZmluZCBmdW5jdGlvbiBcInBsbVwiXG4ifQ== -->
+<pre><code>Error in plm(trmgpa ~ spring + season + crsgpa + sat + hsperc, data = gpa3,  : 
+  could not find function &quot;plm&quot;</code></pre>
 <!-- rnb-output-end -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuI25vdGljZSB0aGF0IHdoZW4gd2UgdXNlIHRoZSBwb29sZWQgb2xzIG1vZGVsLCB0aGUgcmVzdWx0cyBhcmUgdGhlIHNhbWUgYXMgdXNpbmcgbG0oKVxuXG5gYGAifQ== -->
-<pre class="r"><code>#notice that when we use the pooled ols model, the results are the same as using lm()
-</code></pre>
-<!-- rnb-source-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
 <p>The in-season effect from pooled OLS is actually positive and almost statistically significant.</p>
