@@ -21,8 +21,10 @@ output:
  
  From these two things, we can calculate the sampling variance of our Slope Estimators is:
  $Var(\hat{\beta_j}) = \frac{\sigma^2}{SST_j(1-R^2_j)})$
- 
- So, think about this for a second - what happens to our estimators if we have low or high $R^2$, and what about when we don't have much variance in our $x_j$ (total sum of squares)?
+
+Note that  $R^2_j$ is not the $R^2$ of the regression! It is the $R^2_j$ from regressing $x_j$ on all other independent variables (ie $x_j$ becomes the dependent variable and the other xs are the independent vars) 
+
+So, think about this for a second - what happens to our estimators if we have low or high $R^2$, and what about when we don't have much variance in our $x_j$ (total sum of squares)?
  
 So, what impacts our Slope Estimators?
 
@@ -43,7 +45,7 @@ As $R^2 \rightarrow  1$, $Var(\hat{\beta_j}) \rightarrow \infty$. $R^2_j$ measur
 
 ![R vs. MC](slides_6_1.png)
 
-Loosely, Rj2 “close” to one is called the “problem” of multicollinearity.
+Loosely, $R^2_{j}$  “close” to one is called the “problem” of multicollinearity.
 
 Unfortunately, we cannot define what we mean by “close” that is relevant for all situations. We have ruled out the case of perfect collinearity,$R^2_j=1$.
 
@@ -65,7 +67,17 @@ $Var(\hat{\beta_j}) = \frac{\sigma^2}{SST_j} \cdot VIF$
 - a large VIF can be offset by SST (and this grows with sample size)
 
  Remember: You;re interest is in the variance of the estimator, so if you have the equation
- $y = \beta_0 +\beta_1x_1 + \beta_2x_2 +\beta_3x_3$ and you're interested in the variance of $\hat{\beta_1}$ then the correlation between x2 and x3 has nothing to do with $Var(\hat{\beta_1}$. It is only correlation of x1 with (x2, x3) that matters.
+ $y = \beta_0 +\beta_1x_1 + \beta_2x_2 +\beta_3x_3$ and you're interested in the variance of $\hat{\beta_1}$ then the correlation between x2 and x3 has nothing to do with $Var(\hat{\beta_1})$. It is only correlation of x1 with (x2, x3) that matters.
+ 
+ So, what's a person to do when you've got high $R^2$?
+ 
+- Get more data! (Easier said than done.)
+
+- Some suggest to drop one of the variables. THIS CAN BE DANGEROUS. IF that variable belongs in the model it can lead to bias!
+
+- Change the scope of your question. If you're looking at one type of expenditure and it's impact on class performance in a school, you may want to discuss all related expenditures. Then you can do joint testing and say something about the group of expenditures, for example.
+
+- If they are independent variables that are necessary as controls to prevent bias from your main variable of interest, but your main variable of interest is not highly correlated with either - do nothing. You don't care about those estimates anyways, they exist to ensure you have an unbiased estimate of your main variable.
  
 ### Estimating the Error Variance
 
@@ -86,20 +98,26 @@ The standard error of $\hat{\beta_j}$ is:
 
 $se(\hat{\beta_j}) = \hat{\sigma}{\sqrt{SST_J(1-R^2_j)}}$
 
-##Hypothesis Testing
+*Technically, the division of n-k-1 comes from the fact that the expected value of the SSSR $(E(SSR) = (n-k-1)\sigma^2)$ But, as we discussed in the simple case, the degrees of freedom adjustment comes from our the 2 conditions from our FOC to derive our estimator.
 
-Now, we've got all of the elements to test our hypothesis
+## Hypothesis Testing
+
+Now, we've got all of the elements to test our hypothesis.
+
 This means we hypothesize that a population parameter is a certain value, then use the data to determine whether the hypothesis is likely to be false.
 
 To test hypotheses about the $\beta_j$ using exact (or “finite sample”) testing procedures, we need to know more than just the mean and variance of the OLS estimators.
 
 We can compute:
+
 - the expected value, and
+
 - the variance
 
 But testing relies on the entire **sampling distribution** $\hat{\beta_j}$. That's right the $\hat{\beta_j}$ has it's own distribution
 
 $\hat{\beta_j} = \beta_j + \sum^n_{i=1}w_{ij}u_i$
+
 where $w_{ij}$ are functions of our independent observations. 
 
 Our sixth assumption lies on requirements of the distribution of our independent variables: Normality
@@ -121,7 +139,7 @@ Usually, the argument starts with the claim that u is the sum of many independen
 This full set of assumptions is what is called the classic linear assumptions (there are 6 of them)
 
 Also fortunately:
-An important fact about independent normal random variables: any linear combination is also normally distributed. Because the ui are independent and identically distributed (iid) as $u ∼ Normal(0,\sigma^2)$,
+An important fact about independent normal random variables - any linear combination is also normally distributed. Because the $u_i$ are independent and identically distributed (iid) as $u ∼ Normal(0,\sigma^2)$,
 
 Thus, it follows that:
 
@@ -172,11 +190,13 @@ leads to a 5% level test.
 Our hypothesis involve the unknown population values, $\hat{\beta_j}$. If in a our set of data we obtain say, $\hat{\beta_j}$ , we do not write the null hypothesis as $\hat{\beta_j}$ = 2.75 (which is obviously false).
 
 Nor do we write
+
 $H_0: 2.75=0$
+
 $H_0 : \hat{\beta_j} = 0$ 
 (which is also false except in the very rare case that our estimate is exactly zero).
 
-We do not test hypotheses about the estimate! We know what it is once we collect the sample. We hypothesize about the **unknown population value**, $\hat{\beta_j}$.
+We do not test hypotheses about the estimate! We know what it is once we collect the sample. We hypothesize about the **unknown population value**, $\beta_j$.
  
 - When we reject$H_0: \beta_j = 0$ against $H_1: \beta_j \neq 0$, we often say that $\beta_j$ is statistically different from zero and usually mention a significance level. For example, if we can reject at the 1% level, we say that. If we can reject a the 10% level but not the 5%, we say that.
 
@@ -208,6 +228,23 @@ So smaller p-values provide more are evidence against the null. For example, if 
 If p-value = .001, then the chance of seeing a t statistic as extreme as we did is .1%. We can conclude that we got a very rare sample – which is not helpful – or that the null hypothesis is very likely false.
 
 The p-value perfectly maps t-scores. 
+
+When we choose a critical value, it is directly speaking about the liklihood of a type 1 (false positive) or type 2 error (false negative). 
+
+Classic example that we are experiencing is the design of covid tests.
+
+- Type 1 error is if your result says you have covid, but you don't
+- Type 2 error is if your results says you don't have covid, but you do
+
+What kind of error would you prefer to make in this situation?
+
+The higher critical t value that we choose is direct relationship with a reduction of type 2 error at the cost of higher type 1 errors. 
+
+A critical p-value of "six sigma" is common among engineers because we want to reduce the risk of a bridge collapsing at any moment.
+
+A critical p-value of 2 sigmas is reasonable in social sciences because the consequences of being wrong are not as detrimental.
+
+The FDA sets standards of this risk when introducing a new drug, test, etc. Not published medical journals. 
 
 ![t vs pvalue](OLSVariance_Inference.png)
 
@@ -281,8 +318,10 @@ FYI: an example of exclusion restrictions: The three variables, bavg, hrunsyr, a
 
 ```{r}
 #install.pacakge(lme4)
-library(Matrix)
-library(lme4)
+#install.packages(wooldridge)
+
+library("Matrix", "lme4", "wooldridge")
+data(mlb1)
 mlb <-lm(lsalary ~years + gamesyr+bavg + hrunsyr+rbisyr, data = mlb1)
 summary(mlb)
 ```
@@ -381,7 +420,9 @@ We say that bavg, hrunsyr, and rbisyr are jointly statistically significant (or 
 Nothing much is lost by dropping one of the two variables. Notice that doing so does not change the fact that bavg is statistically insignificant and its coefficient remains small.
 
 Fun facts:
-- The F dsitribution is  $t^2$
+
+- The F distribution is equivalent to the $t^2$
+
 - F tests for exclusion restrictions can be computed entirely from the R-squareds for the restricted and unrestricted models.
 
 - The key is that, because the same dependent variable is used in the two regressions:
@@ -394,12 +435,6 @@ We can rewrite this:
 F = \frac{R^2_{ur}-R^2_{r}/q}{(1-R^2_{ur})/(n-k-1)}
 We know that $R^2_{ur} \geq R^2_r$ which insures that the $F \geq0$
 
-```{r}
-#install.packages(wooldridge)
-library(wooldridge)
-
-data(mlb1)
-```
 
 Let's look at MLB data and see if performance indicators are statistically significant (bavg, hrunsyr, rbisyr)
 
@@ -421,7 +456,7 @@ summary(lm(lsalary ~years + gamesyr+bavg +rbisyr, data = mlb1))
 ```
 However, this can cause omitted variable bias. You can see that some of the other coefficients change as a response to dropping a variable. In this case, the OVB is not large, but we have another option instead of dropping a variable that can cause our estimates to be biased.
 
-We can do an F-test! F-tests pull from a different distribution  (the f distirbution) and we can compare our unrestricted model to our restricted model. We want to test if all of our performance variables are jointly statistically significant to zero. If any one is not equal to zero - then we fail to reject the null.
+We can do an F-test! F-tests pull from a different distribution  (the f distribution) and we can compare our unrestricted model to our restricted model. We want to test if all of our performance variables are jointly statistically significant to zero. If any one is not equal to zero - then we fail to reject the null.
 
 ```{r}
 #install.packages(car)

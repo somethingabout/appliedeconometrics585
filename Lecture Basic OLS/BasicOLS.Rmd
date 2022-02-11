@@ -7,35 +7,27 @@ A good reference on basic econometrics with R can be found on [this](https://www
 We'll be importing excel datasets, so will need to install a package to do so:
 
 ```{r}
-#install.packages("xlsx")
+#install.packages("readxl")
 ```
 
 Now let's load the library and import the dataset
 ```{r}
-library(xlsx)
-ceodata <- read.table("/Users/mkaltenberg/Dropbox (Personal)/Pace/ECO585/R notebooks/Data/textfiles/ceosal1.raw")
+library("readxl")
+ceodata <- read_excel("/Users/mkaltenberg/Dropbox/Pace/ECO585/R notebooks/Data/excelfiles/ceosal1.xls", col_names = c("salary", "pcsalary", "sales", "roe","pcroe", "ros","indus","finance","consprod","utility","lsalary", "lsales"))
 ```
-Clean up the data a bit (linking the data descriptive file within our dataset)
-```{r}
-library(tibble)
-library(dplyr)
-ceosalary<- as_tibble(ceodata)
 
-ceosalary <- ceosalary %>% 
-  rename(
-    salary = V1,
-    pcsalary = V2,
-    sales = V3,
-    roe =V4,
-    pcroe = V5,
-    ros = V6,
-    indus = V7,
-    finance = V8,
-    consprod = V9,
-    utility = V10,
-    lsalary = V11,
-    lsales = V12
-    )
+Let's see how to rename variables
+```{r}
+
+#library(tidyverse)
+#ceosalary<- as_tibble(ceodata)
+
+#an example on how to rename variables
+#ceosalaryex <- ceosalary %>% 
+  #rename(
+   # inc = salary,
+    #returnexp = roe
+#    3)
 ```
 Let's estimate a simple regression:
 
@@ -45,8 +37,9 @@ where annual CEO salary is in thousands of dollars and the return on equity is a
 
 Let's run that regression in R:
 ```{r}
-
-roe_reg <- lm(salary ~ roe, data = ceosalary)
+library(wooldridge)
+data("ceosal1")
+roe_reg <- lm(salary ~ roe, data = ceosal1)
 summary_roe <-summary(roe_reg)
 summary_roe
 ```
@@ -72,15 +65,15 @@ What will happen to the intercept, slope, and $R^{2}$ when we regress
 Nothing should happen to the intercept: $r o e d e c =0$ is the same as $r o e =0$. But the slope will increase by 100. The goodness-of-fit should not change, and it does not.
 
 ```{r}
-ceosalary <- ceosalary %>%
+ceosal1 <- ceosal1 %>%
   mutate(roedec= roe/100)
 
-roedec<-lm(salary ~ roedec, data =ceosalary)
+roedec<-lm(salary ~ roedec, data =ceosal1)
 
 roedec_sum <- summary(roedec)
 roedec_sum
 ```
-Now a one percentage point change in $r o e$ is the same as $ \Delta r o e d e c =.01$, and so we get the same effect as before.
+Now a one percentage point change in $roe$ is the same as $ \Delta r o e d e c =.01$, and so we get the same effect as before.
 
 What if we measure salary in dollars, rather than thousands of dollars? 
 
@@ -93,7 +86,7 @@ Let's see some of the OLS properties in action
 1) The sum of residuals will equal to 0
 Let's see it:
 ```{r}
-u <- resid(lm(salary ~ roedec, data =ceosalary))
+u <- resid(lm(salary ~ roedec, data =ceosal1))
 sum(u)
 ```
 There are some rounding errors in computation, but the sum is close to 0
@@ -212,8 +205,11 @@ Take this example, where we measure the impact of region on wages. We interpret 
 
 
 ```{r}
+#install.packages("wooldridge")
+library(wooldridge)
 data("wage1")
- dummies <- lm(lwage ~ educ+tenure+smsa+northcen+south+west, data= wage1)
+
+dummies <- lm(lwage ~ educ+tenure+smsa+northcen+south+west, data= wage1)
 
 summary(dummies)
 ```
@@ -243,6 +239,105 @@ So, you can imagine, that there are tons of settings in which the groups we may 
 Econometrics is mostly building an statistically ideal situation in which we have two identical groups and the only difference between the two groups are randomly assigned - that is your X and a variable that you are interested in understanding. 
 
 And when you consider your research, your interest should focus on a couple of X's (meaning that you want to create an ideal setting for a couple of variables - you want to understand unbiased estimates for a one or a couple variables).  The other variables that you include - those controls - are meant to help you create this ideal setting, but often, they can biased (and that's ok - so long as you understand the caveats and you don't interpret those coefficients as causal).
+
+### Policy Analysis
+For a moment, allow an important tangent about causal effects.
+
+Often, you want to evaluate a policy or intervention that has two states in the world. In data terms, it's a binary terms. In real world terms, one group was exposed the the intervention (this is called the *treatment* group) and the other group was not exposed (this is called the *control* group). Language is important as we will return to using the term treatment group very frequently. 
+
+We know the *outcome* of these states - that somebody has either been part of the policy group or not. For example, they received free health insurance or they did not. 
+
+The treatment effect is simple
+$$te = y(1) - y(0)$$
+
+$y(1)$ being that they got the treatment and $y(0)$ that they did not.  You should be asking yourself, but wait - they only participated in one option. They can't do both, so how can you subtract the different between participating and not participating of the same person?!
+
+We need to rely on counterfactuals. Holding everything constant, what is the effect of health if they receive free health care. HOlding everything constant, what is the effect of health if they don't receive the benefit?  These are the potential outcomes (or counterfactual outcomes)
+
+So, we often can't estimate each person's treatment effect. INSTEAD, we estimate the **average treatment effect (ATE henceforth)** This is the average of the treatment effects across the entire population.
+
+$$\tau_{ATE} = E[te_i] = E[y_i(1)-y(0_i)]$$
+And because of the linearity of the expected value this is equal to:
+$$= E[y_i(1)]-E[y_i(0)]$$
+
+The observed outcome of $y_i$ can be
+
+$$y_i= (1-x_i)y_i(0)+x_iy_i(1)$$
+Where $y_i = y_i(0)$ if $x_i = 0$ and $y_i = y_i(1)$ if $x_i=1$
+
+We can rearrange:
+
+multiply out  $y_i = y_i(0)+y_i(0)x_i+x_iy_i(1)$ 
+
+rearrange and get:  $$y_i = y_i(0) + [y_i(1) - y_i(0)]x_i$$
+
+Now impose a pretty unrealistic assumption of constant treatment effects for all i
+
+$y_i(1)=\tau +y_i(0)$  which is also $\tau = y_i(1)-y_i(0)$
+
+Plug that into our equation of y_i and it simplifies to:
+$y_i = y_i(0) + \tau x_i$
+
+If we define $y_i(0) = \alpha_0 +u_i(0)$ (and recall that $\alpha_0 = E[y_i(0)]$ and as usual, the error term is expected value is zero $E[u_i(0)=0$]). Plug this into our equation for $y_i$ (replace $y_i(0)$):
+
+$y_i = \alpha_0 + \tau_ix_i + u_i(0)$
+
+If we define $\beta_0 = \alpha_0, \beta_1 = \tau$ and $u_i = u_i(0)$, we get the usual:
+
+$$y_i = \beta_0 + \beta_1x_i + u_i$$
+$\beta_1$ is just the treatment or causal effect.  This is often called the difference in means estimator and is the unbiased treatment effect $\tau$. If $x_i$ is independent of $u_i(0)$ then we know $E(u_i(0)|x_i] = 0$). This is the same as saying $x_i$ is independent of $y_i(0)$. This assumption is guaranteed only under *random assignment*.   This means that the treatment must be assigned randomly.
+
+The above equation is an RCT (randomized control trial).
+
+Suppose we relax the assumption of constant treatment effect. We can write the individual treatment effect as
+$$te_i = y_i(1)-y_i(0)=\tau_{ATE}+[u_i(1)- u_i(0)]$$
+recall where $y_i(1) = \alpha_1+u_i(1)$ and $\tau_{ATE} = \alpha_1 = \alpha_0$ \
+
+$\tau_{ATE}$ is the average across the entire population and $u_i(1) - u_i(0)$ is the deviation from the population average for unit i.
+
+Plug $te_i = y_i(1)-y_i(0)=\tau_{ATE}+[u_i(1)- u_i(0)]$ into 
+$y_i = y_i(0) + [y_i(1) - y_i(0)]x_i$ and get:
+
+$$y_i = \alpha_0 + \tau_{ATE}x_i + u_i(0)+[u_i(1)-u_i(0)]x_i = \alpha_0 + \tau_{ATE}x_i+u_i$$
+
+and the error term is $u_i(0)+[u_i(1)-u_i(0)]$
+
+random assignment assumption is now that x_i is independent of [u_i(0),u_i(1)], even thought $u_i$ depends on $x_i$
+
+$$E(u_i|x_i) = E[u_i(0)|x_i] + E[u_i(1)]-u_i(0)|x_i]x_i$$
+*note that the error term is not independent of $x_i$, but this isn't a problem for showing our unbiased estimator.  This makes sense because the variance should change depending if you were treated or untreated. These results only hold because of random assignment.
+
+
+Let's see what happens when we don't have random assignment (as it's very hard to have this situation without doing an experiment). Instead, let's imagine if we can have control variables that help predict the potential outcomes and determine the assignment in the treatment and control group - let's call this group of controls x.
+
+To reduce confusion we will rewrite $y_i= (1-x_i)y_i(0)+x_iy_i(1)$ as 
+
+$$y_i= (1-w_i)y_i(0)+w_iy_i(1)$$
+Then we can have the assumption that 
+$w$ is independent of $[y(0),y(1)]$ *conditional* on x
+
+This is called **conditional independence** where the variables in x are in the conditioning set. This is also called **unconfounded assignment** or **ignorable assignment**
+
+Let's see this difference in an example of job training - you'll see this example at various points in the course.
+```{r}
+data("jtrain98")
+
+simplediff <- lm(earn98 ~ train, data = jtrain98)
+summary(simplediff)
+
+ conditionalx<- lm(earn98 ~ train+earn96+educ+age+married, data = jtrain98)
+ 
+ summary(conditionalx)
+
+```
+
+We can see that the effect of job training actually increases when we control for other factors. Without controls, the job training program  decreases income by \$2,005, but when we add controls we can see that the job training programs increase by \$2,410 The controls serve to create a kind of random assignment. As long as we include all of the variables that could effect assignment of job training. 
+
+So, when we think of control variables, what we want to do is to be able to explain all reasons as to why some people received the treatment and why other people didn't. 
+
+Another way to think about this is that we are trying to create an experiment where one group received treatment and the other didn't. But, the two groups are identical.  The controls are ensuring that the treatment effect is unbiased, ceteris paribus - holding all other factors constant. If we hold all factors that differentiate the two groups constant, we can say something about the treatment effect. 
+
+
 
 ### Unbiasedness of Beta 
 The key assumption that you must think about the most is if assumption 4 is met. This assumption is often broken, and as a consequence will result in biasedness in your $\beta$ parameters.
@@ -293,7 +388,7 @@ We require two conditions for the coefficient on $X_1$ to "suffer" from omitted 
 If omitted variable bias is present then $\hat{\beta}_1$ does not converge (in probability) to the true value but instead to the following:
 
 $$\hat{\beta}_1 \buildrel p \over \longrightarrow  \beta_1 + \rho_{X_1 u} \frac{\sigma_u}{\sigma_{X_1}}$$
-
+Where $\rho_{X_1 u}$ is the correlation between the error term ($u$) and $X_1$, $\sigma_u$ is the std dev of the error term and $\sigma_{x_1}$ is the std dev of $x_1$
 Quite generally, this means that there is something in the error term ($u$) that is correlated with both $X_1$ and $Y$, which invalidates the zero conditional mean assumption and biases the coefficient of $X_1$ in a particular direction.
 
 #### Deriving the formula
@@ -367,7 +462,7 @@ wagedata <-data("wage1")
 biased <- lm(lwage ~ educ+tenure, data= wage1)
 summary(biased)
 
-less_biased <-lm(lwage ~ educ+exper, data= wage1)
+less_biased <-lm(lwage ~ educ+exper+tenure, data= wage1)
 summary(less_biased)
 ```
 
@@ -387,9 +482,9 @@ $$\bar{R}^2 \equiv 1 - \left(\frac{N-1}{N-K-1}\right) \frac{\sum_{i=1}^N \hat{u}
 Similarly, the $SER$ now needs to be adjusted for the extra degrees-of-freedom used during the estimation \vspace{-1em}
 
 $$SER \equiv s_{\hat{u}} = \sqrt{\frac{1}{N-K-1}\sum_{i=1}^N \hat{u}_i^2}$$
-Can the adjusted $R^2$ ever be negative?
+Can the adjusted $R^2$ decrease if we include a new variable? Depends if it is relevant or not.
 
-What happens if we include an irrelavant variable? Let's see an example...
+What happens if we include an irrelevant variable? Let's see an example...
 
 ```{r}
 mlb <-lm(lsalary ~years + gamesyr+bavg + hrunsyr+rbisyr, data = mlb1)
@@ -400,6 +495,8 @@ summary(mlb2)
 
 
 ```
+
+
 
 
 
