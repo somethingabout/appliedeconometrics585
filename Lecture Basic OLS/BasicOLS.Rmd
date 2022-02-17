@@ -95,16 +95,16 @@ There are some rounding errors in computation, but the sum is close to 0
 
 Let's show it:
 ```{r}
-yhat <- predict(lm(salary ~ roedec, data =ceosalary))
+yhat <- predict(lm(salary ~ roedec, data =ceosal1))
 
-mean(ceosalary$salary)
+mean(ceosal1$salary)
 mean(yhat)
 ```
 
 The sample covariance (and therefore the sample correlation) between the explanatory variables and the residuals is always zero:
 
 ```{r}
-sum(ceosalary$roedec*u)
+sum(ceosal1$roedec*u)
 ```
 Again, there are some rounding errors in computation, but the sum is close to 0
 
@@ -119,17 +119,17 @@ Again, there are some rounding errors in computation, but the sum is close to 0
 $\bar{y} = \beta_0 + \beta_1\bar{x}̄$
 
 ```{r}
-mean(ceosalary$roedec)
-mean(ceosalary$salary)
+mean(ceosal1$roedec)
+mean(ceosal1$salary)
 ```
 We can plot our regression 
 
 
 And we can graph our residuals like this:
 ```{r}
-plot(salary ~ roedec, data=ceosalary)
-abline(lm(salary ~ roedec, data =ceosalary))
-points(mean(ceosalary$roedec), mean(ceosalary$salary), col = "red")
+plot(salary ~ roedec, data=ceosal1)
+abline(lm(salary ~ roedec, data =ceosal1))
+points(mean(ceosal1$roedec), mean(ceosal1$salary), col = "red")
 ```
 
 ## Simple Linear Regression Assumptions
@@ -496,10 +496,40 @@ summary(mlb2)
 
 ```
 
+When more regressors are added, SSR falls, but so does $d f =n -k -1$. $\bar{R}^{2}$ can increase or decrease. 
+
+For $k \geq 1$, $\bar{R}^{2} <R^{2}$ unless $S S R =0$ (not an interesting case). In addition, it is possible that $\bar{R}^{2} <0$, especially if $d f$ is small. Remember that $R^{2} \geq 0$ always.
+
+More algebraic facts: 
+
+1. If a single variable is added to a regression, $\bar{R}^{2}$ increases if and only if the absolute $t$ statistic of the new variable is greater than one. (Note this value does not correspond to any commonly used critical value.)
 
 
+2. If two or more variables are added to a regression, $\bar{R}^{2}$ increases if and only if the $F$ statistic for joint significance of the new variables is greater than one. (Again, the value one is a curiosity; it does not correspond to commonly used critical values for $F$ tests.)
+
+Sometimes useful to write:
+
+\begin{equation*}\bar{R}^{2} =1 -(1 -R^{2}) \frac{(n -1)}{(n -k -1)}
+\end{equation*}
+
+Important: In the $R$-squared form of the $F$ statistic that we covered, it is the usual $R$-squared, not the adjusted $R$-squared, that appears. 
+
+Sometimes $\bar{R}^{2}$ is called the ``corrected $R$-squared,'' but this name is problematic. It implies that $\bar{R}^{2}$ corrects some statistical deficiency that $\bar{R}^{2}$ has for estimating $\rho ^{2}$. But like $R^{2}$, $\bar{R}^{2}$ is biased for $\rho ^{2}$.
 
 
+### Using Adj. R-squared to choose between models
+
+Typically, if you tell me that you chose one model over the other because it has a higher Adj. R-square, I'm going to be *VERY* skeptical. Blindly using R-square to determine the "best" model is a big no-no. 
+
+However, there are situations where it may be helpful.
+
+When you are trying to figure out which proxy is better than another, it might be useful.
+
+OR maybe you want to consider different functional forms (Do I use a log or a polynomial? - both represent diminishing returns)
+
+This is what wooldridge calls comparing *nonnested models*.
+
+NOTE that it is only possible to do these comparisons when the dependent model remains the same. You can't use adjusted R-square to figure out if log(y) or y is the better option. 
 
 
 
