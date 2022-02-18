@@ -24,7 +24,7 @@ and so the intercept will increase by about 6.91. None of the slopes changes. Th
 
 2. When y > 0, models with log(y) as the dependent variable often more closely satisfy the classical linear model assumptions. For example, the model has a better chance of being linear, homoskedasticity is more likely to hold, and normality is often much more plausible. (These are observations based on experience.)
 
-3. In most cases, taking the log greatly reduces the variable of a variable, making OLS estimates less prone to outlier influence. 
+3. In most cases, taking the log greatly reduces the variance of a variable, making OLS estimates less prone to outlier influence. 
 
 #### Limitations of Using the Natural Log
 
@@ -50,18 +50,18 @@ Consider unem, the unemployment rate. Because unemployment is a percent, changes
 Now let the dependent variable be $\log(bwght)$: 
 
 \begin{equation}
-\log(wage) =\beta_{0} +\beta_{1}faminc +u
+\log(bwght) =\beta_{0} +\beta_{1}faminc +u
 \end{equation}
 
 Holding $u$ fixed, 
 
 \begin{equation} 
-\Delta \log(salary) =\beta _{1}  \Delta faminc
+\Delta \log(bwght) =\beta _{1}  \Delta faminc
 \end{equation}
 
 
 so, 
-\begin{equation}\beta_{1} =\frac{ \Delta \log  (bwght)}{ \Delta faminc}
+\begin{equation}\beta_{1} =\frac{ \Delta \log (bwght)}{ \Delta faminc}
 \end{equation}
 
  Useful result from calculus: 
@@ -71,15 +71,15 @@ so,
 
 This means when $\log(bwght) =\beta _{0} +\beta _{1}faminc +u$, we have a simple interpretation of $\beta_{1}$: 
 
-\begin{equation}100 \beta _{1}  \approx  \%  \Delta bwght\text{when} \Delta faminc =1
-\end{equation}
+$100 \beta _{1}  \approx  \%  \Delta wage$ when $\Delta faminc =1$
+
 
 Why, you ask, is this $100\times\beta_1$? Well, *technically* it's not actually 100%. It's a rule of thumb we use. We treat logs as an approximate percent change. 
 If we set $\delta = 1$ for a unit change:
 
 \begin{equation}E[lnY_0] = \beta_0 +\beta_1 X\end{equation}
-\begin{equation}E[lnY_0] = \beta_0 +\beta_1(X+1)\end{equation}
-\begin{equation}E[lnY_0]-E[lnY_0] = \beta_1(X+1) -\beta_1X\end{equation}
+\begin{equation}E[lnY_1] = \beta_0 +\beta_1(X+1)\end{equation}
+\begin{equation}E[lnY_1]-E[lnY_0] = \beta_1(X+1) -\beta_1X\end{equation}
 \begin{equation}E[lnY_1]-E[lnY_0] = \beta_1\end{equation}
 
 When you multiply $\beta_1$ by 100, the approximation is $E[lnY_1]-E[lnY_0] \approx \frac{E[Y_1]-E[Y_0]}{E[Y_0]}$. 
@@ -88,7 +88,7 @@ For simplicity, let's just drop the expectations and treat it as if there is no 
 
 So, we get    
 \begin{equation}
-ln(1+\frac{\Delta}{Y_1}=\beta)
+ln(1+\frac{\Delta}{Y_1})=\beta
 \end{equation}
 
 We can exponentiate both sides and see the approximation:
@@ -106,17 +106,29 @@ We only use the linear approximation (and disregard the terms from the quadratic
 
 Note: A Taylor series expansion of any function is an infinite polynomial approximation of that function about a certain point. The more higher order terms we use, the more closely we approximate the original function further away from the point.
 
+Remember, we are looking at non-linear relationship, so here are two forms of log-lin visualized
+
+<img src="loglin.png" alt="drawing" width="900"/>
+
 
 ```{r}
-library("wooldridge", "stargazer", "dplyr")
+library("wooldridge", "stargazer", "tidyverse")
 data(bwght)
 loglin <- lm(log(bwght) ~ cigs+faminc, data = bwght)
+
+#stata equivalent
+# gen lnbwght = ln(bwght)
+# reg lnbwght cigs faminc
+
 sum_loglin <- summary(loglin)
 sum_loglin
+
+#stata equivalent
+#eststo loglin: reg lnbwght cigs faminc
  
-cigsbeta <- exp(-0.0040326)-1
+cigsbeta <- exp(loglin$coefficients[2])-1
 cigsbeta
-faminc <- exp(0.0008437)-1
+faminc <- exp(loglin$coefficients[3])-1
 faminc
 ```
 For every additional dollar of family income leads to an increase in the baby's birth weight by .08%  (0.0008*100)
@@ -125,29 +137,38 @@ For every additional dollar of family income leads to an increase in the baby's 
 #### Log-log
  We can use the log on both sides of the equation to get constant elasticity models. For example, if 
 
-\begin{equation*}\log(bwght) =\beta _{0} +\beta _{1} \log(faminc) +u
-\end{equation*}then 
+$$\log(bwght) =\beta _{0} +\beta _{1} \log(faminc) +u$$ then 
 
-\begin{equation*}\beta_{1} \approx \frac{ \% \Delta bwght}{ \% \Delta faminc}
-\end{equation*}
+$$\beta_{1} \approx \frac{ \% \Delta bwght}{ \% \Delta faminc}$$
 
 The elasticity is free of units of $bwght$ and $faminc$. 
 
-A constant elasticity model for salary and sales makes more sense than a constant dollar effect.
+We can also see this algebraically:
 
-The estimated elasticity of CEO salary with respect to firms sales is about .25 or a 1% change in sales is associated with a .257% increase in roe (To interpret this elasticity, we do not need to know $bwght$ is in thousands of dollars while $faminc$ is in millions.) 
+Take a small shift in X $$$$\log(bwght+ \Delta bwght) =\beta _{0} +\beta _{1} \log(faminc + \Delta faminc) +u$$ $$
+
+then subtract $\log(bwght) =\beta _{0} +\beta _{1} \log(faminc) +u$ and you'll get:
+$$\Delta bwght = \beta_1(\Delta lnfaminc) $$
+Solve for $\beta_1$:
+$$\beta_1 = \frac{\Delta lnbwght}{\Delta lnbwght} \approxeq \frac{\Delta bwght /bwght}{\Delta faminc/ faminc}$$
+For a 1% unit increase (decrease) in X, we have $\Delta𝑋=0.01(−0.01)$, and we expect a $\beta_1\%$ increase (decrease) in Y
+
 
 ```{r}
 loglog <- lm(log(bwght) ~ cigs+log(faminc), data = bwght)
 sum_loglog <- summary(loglog)
 sum_loglog
 ```
-How do you interpret the coefficient of sales?
 
-A 10 percent increase in family income leads to an increase in birth weight by 1.6%
+The estimated elasticity of bwght with respect to family income is about .016 or a 1% change in family income is associated with a .016% increase in birth weiht (To interpret this elasticity, we do not need to know $bwght$ is in ounces while $faminc$ is in thousands.) 
 
-$.016 (10) =1.6$ percent increase in salary. 
+It could be better to think in larger terms (who wants a 1% increase in income?)- a 10 percent increase in family income leads to an increase in birth weight by 1.6%
 
+$.016 (10) =1.6$ percent increase in family income. 
+
+How do you interpret the coefficient of cigs?
+
+For every additional cigarette smoked on average per day is associated with a .4 \%  increase in birthweight.
 
 How do you interpret the intercept?
 
@@ -156,18 +177,43 @@ Well, it's trickier to interpret the log directly. The intercept is not measurin
 ```{r}
 exp(loglog$coefficients)
 ```
-In this case, the intercept is 822.35 million dollars.  Leaving it in log units is kind of strange, because what are log units? Much better to exponentiate it to convert it back to understandable units.
+In this case, the intercept is 112.01 ounces.  Leaving it in log units is kind of strange, because what are log units? Much better to exponentiate it to convert it back to understandable units.
+
+The log-on-log case represents a multiplicative relationship between the original variables. For instance
+$$lny = \beta_0 +\beta_1lnx_1+\beta_2lnx_2+u_i$$
+
+is equivalent to 
+$$y = e^{\beta_0}x_1^{\beta_1}x_2^{\beta_2}e^{u}   $$
+Very convenient! Think of a linearized Cobb-Douglas production function (macro)!
+
 
 
 ### lin-log
 In a lin log model, 
 
-\begin{equation*}bwght =\beta_{0} +\beta_{1} \log(bwght) +u
-\end{equation*}
+$$bwght =\beta_{0} +\beta_{1} \log(faminc) +u$$
 then 
 
-\begin{equation*}\beta _{1} \approx \frac{ \Delta bwght}{ \Delta log(faminc)}
-\end{equation*}
+$$\beta _{1} \approx \frac{ \Delta bwght}{ \Delta log(faminc)}$$
+
+We can see this algebraically, too:
+
+After a small shift in $\Delta$faminc in faminc:
+$$bwght = \beta_0 + \beta_1ln(faminc +\Delta faminc)$$
+Subtract this from our earlier regression, $bwght =\beta_{0} +\beta_{1} \log(faminc) +u$
+
+and you get:
+
+$$=\beta_1 \Delta lnfaminc$$
+Solve for $\beta_1$
+$$\beta_1 = \frac{\Delta bgwht}{\Delta lnfaminc} \approxeq \frac{\Delta bgwht}{\Delta faminc/faminc} = $$
+For 1 % increase (decrease) in X, we have a $\Delta faminc =0.01(-0.01)$, and we expect a 0.01 $\beta_1$ increase (decrease) in Y
+
+We can see the non-linear relationship for a log-lin with a positive ln(x) and negative ln(x):
+
+<img src="linlogpos.png" alt="drawing" width="300"/>
+<img src="linlogneg.png" alt="drawing" width="325"/>
+
 
 ```{r}
 linlog <- lm(bwght ~ cigs+log(faminc), data = bwght)
@@ -175,9 +221,9 @@ sum_linlog <- summary(linlog)
 sum_linlog
 ```
 
-For every additional dollar in family income, birth weight will increase by .018 % (1.8/100)
+For every additional $1000 in family income, birth weight will increase by .018 % (1.8/100)
 
-or rather, for every $1,000 increase in birth weight is associated with 18 ounces ((1.8/100)*1000)
+or rather, for every $10,000 increase in birth weight is associated with 18 ounces ((1.8/100)*1000)
 
 Let's compare our estimates of the models
 
@@ -206,7 +252,7 @@ A handy reminder of interpreting coefficients is:
 |-----------|---------|------------|----------|
 |Lin-Lin| y       |x           |$\Delta y=\beta_1 \Delta x$
 | Lin-Log | y       |log(x)      |$\Delta y=(\beta_1/100\%) \Delta x$
-| Log-Lin |log(y)   |x           |$\%\Delta y=(100\beta_1) \Delta x$
+| Log-Lin |log(y)   |x           |$\%\Delta y=(100\beta_1) \Delta x$  technically should be $100 * (e^\beta-1) \Delta x$
 |  Log-Log  |log(y)   |log(x)      |$\Delta \%y=\beta_1\Delta x$
 
 The possibility of using the natural log to get non-linear relationships between $y$ and $x$ raises a question: What do we mean now by ``linear'' regression? 
@@ -229,6 +275,8 @@ data(attend)
 # If you want to standardize your own values, you can do so as such. I am standardizing GPA and ACT in this case and creating a NEW dataframe. This will replace the existing columns - so be aware of that in this method!
 attendstd <- attend %>% mutate_at(c('priGPA', 'ACT'), ~(scale(.) %>% as.vector))
 
+
+
 attend_std <- lm(stndfnl ~ missed+priGPA+ACT, data = attendstd)
 
 summary(attend_std)
@@ -249,42 +297,76 @@ Models also allow for a turning point, which is sometimes of interest. (For exam
 
 Consider the model
 
-$$y = β_0 + β_1x_1 + β_2x_2 + u$$
+$$y = β_0 + β_1x_1 + β_2x_1^2 + u$$
 
 There is only a single explanatory variable, x, but two regressors, $x_1, x_2$.
 
 The slope of y with respect to x depends on $\beta_1$ and $\beta_2$, and the value of x: $ \frac{dy}{dx} = \beta_1 + 2\beta_2x$ holding u fixed 
 
-Estimation is straightforward. We just define a new variable, $x_2$, and include it along with x as a regressor.
+Estimation is straightforward. We just define a new variable, $x^2$, and include it along with x as a regressor.
 
 Having estimated the coefficients we write
-\begin{equation}
-\hat{y} = \hat{\beta_0}+\hat{\beta_1}+\hat{\beta_2}x^2
-\end{equation}
+$$ \hat{y} = \hat{\beta_0}+\hat{\beta_1}x+\hat{\beta_2}x^2 $$
 
-\begin{equation}
+$$
 \frac{\Delta{\hat{y}}}{\Delta X} \approx \hat{\beta_1}+\hat{\beta_2}2X
-\end{equation}
+$$
 
 Cases
 
 1. If $\hat{\beta_1} > 0$ and $\hat{\beta_2} < 0$, the slope is initially positive, but it decreases as x increases. The function has a hump shape and turns at the value
 
-\begin{equation}
-\displaystyle\left\lvert x^* = {\frac{\hat{\beta_1}}{2 \hat{\beta_2}}} \right\rvert
-\end{equation}
+$$  \displaystyle\left\lvert x^* = {\frac{\hat{\beta_1}}{2 \hat{\beta_2}}} \right\rvert $$
 
 the maximum of the function. After the value x∗, the slope is negative.
 
+```{r}
+library(tidyverse)
+quadratic <- function(x){x-x^2}
+
+#plot it
+ggplot(data.frame(x = c(-15,15)), aes(x = x)) +
+  stat_function(fun = quadratic) + xlim(c(-15, 15)) 
+```
+
+
+
+
 2. If $\hat{\beta_1} < 0$  and $\hat{\beta_2} > 0$, the slope is initially negative, but it increases (gets less negative) as x increases. The function has a U shape and turns at the x∗ given above. But now x∗ is the minimum of the function. Once $x > x∗$, the
 slope is positive.
+```{r}
+library(tidyverse)
+quadratic <- function(x){-x+x^2}
+
+#plot it
+ggplot(data.frame(x = c(-15,15)), aes(x = x)) +
+  stat_function(fun = quadratic) + xlim(c(-15, 15)) 
+```
 
 In Cases 1 and 2, we should ask: Does the turning point makes sense? If it does not make sense for the slope to change signs, does the sign change happen only at an extreme value of x?
 
 3. If $\hat{\beta_1} > 0$  and $\hat{\beta_2} > 0$, the slope ($\hat{\beta_1}+2\hat{\beta_2}x$) is always positive and increases with x. The turning point occurs at a negative value of x. (In practice, less common than Case 1.)
+
+```{r}
+library(tidyverse)
+quadratic <- function(x){x+x^2}
+
+#plot it
+ggplot(data.frame(x = c(-15,15)), aes(x = x)) +
+  stat_function(fun = quadratic) + xlim(c(-15, 15)) 
+```
 4. If $\hat{\beta_1} < 0$  and $\hat{\beta_2} < 0$, the slope is always negative and becomes more negative (increases in absolute value) as x in creases. The turning point is negative.
 
 Adding additional explanatory variables changes nothing of the calculations, except for giving a ceteris paribus interpretation.
+
+```{r}
+library(tidyverse)
+quadratic <- function(x){-x-x^2}
+
+#plot it
+ggplot(data.frame(x = c(-15,15)), aes(x = x)) +
+  stat_function(fun = quadratic) + xlim(c(-15, 15)) 
+```
 
 
 ```{r}
@@ -359,6 +441,7 @@ lm(log(wage) ~educ + stats::poly(exper, 2) , data = wage1)
 
 wage_square <- lm(log(wage) ~educ + exper + I(exper^2) , data = wage1)
 
+summary(wage_square)
 cplot(wage_square, "exper")
 
 # We can take the average of the marginal effect with:
@@ -370,6 +453,7 @@ dydx(wage1, wage_square, variable = "exper")
 #at specific values
 summary(margins(wage_square, at = list(exper = c(10, 15, 20, 25, 30, 35, 40)), variables = "exper"))
 
+mean(wage1$exper)
 
 ```
 
@@ -1116,92 +1200,6 @@ Then, we can do all sorts of classifications:
 - fraction of correctly predicted successes: $\sum_i  1(\tilde{y}_i = 1 \wedge Y_i=1)/ \sum_i Y_i$
 - fraction of correctly predicted failures: $\sum_i  1(\tilde{y}_i = 0 \wedge Y_i=0)/\sum_i 1({Y}_i=0)$
 - fraction correctly predicted: $\sum_i  1(\tilde{y}_i = Y_i) / N$.
-
-### Policy Analysis and the Self-Selection Problem
-
-Consider the following model:
-\begin{gather*}E (y\vert w ,\boldsymbol{x}) =\alpha  +\tau  w +\gamma _{1} x_{1} +\ldots  +\gamma _{k} x_{k} \\
-y =(1 -w) y (0) +w y (1)\end{gather*}
-
-We include $x_{j}$ to account for the possibility that program participation ($w$) is not randomly assigned.
-
-Participation decisions may differ systematically by individual characteristics - this is the *self-selection problem*
-
-For example, children eligible for programs like Head Start participate largely based on parental decisions. These parental decisions depend on characteristics like family background and structure which also tend to predict child outcomes. Thus, we need to control for these characteristics to get closer to random assignment 
-
-Another example could be looking at the effect of drug use on unemployment status. We need to account for any systematic differences
-between those who use drugs and those who do not. Drug use may be correlated with a number of factors that also influence unemployment. If we do not control for these factors, then we cannot identify the causal effect of drug use on unemployment status.
-
-Or it can be at the aggregate level - city or state decisions on laws, let's say gun violence, may be implemented systematically related to other factors that affect violent crime. 
-
- By regressing $y_{i}$ on $w_{i} ,x_{1 i} ,\ldots  ,x_{k i}$, we are engaging in regression adjustment and the coefficient on $w_{i}$ is $\hat{\tau }_{i}$ is the regression adjusted estimator. 
-
-**We can relax the assumption of a constant treatment effect.**
-
-Recall that unconfoundedness or the ignorability assumption is that we have sufficient explanatory variables (these are called *covariates* - factors that can vary with participation decisions and potential outcomes) so that conditional on those variables, program participation is as good as random.
-
-We still assume unconfoundedness such that $w$ is independent of $[y(0) ,y (1)]$, conditional on $x_{1} ,\ldots  ,x_{k}$ 
-
-Assume linear conditional means, but allow for separate equations for $y (0)$ and $y (1)$
-
-$$y (0) =\psi _{0} + (x -\eta)\gamma _{0}  +u (0)$$
-
-$$y(1) =\psi _{1} + (x -\eta)\gamma _{1}  +u (1)$$
-
-$$ \eta _{j} =E (x_{j})\text{,}\psi _{0} =E[y(0)]\text{, and}\psi _{1} =E[y(1)]$$
-
-We center the covariates $(x_{j})$ around their means so that the intercepts $\psi _{0}$ and $\psi _{1}$ are the expected values of the two potential outcomes \
-
-ie $\eta_j$ is the population mean of $x_j$, $\psi_{0} = E[y(0)]$  and $\psi_{1} = E[y(1)]$
-
-
-$$te_i = y_i(1) - y_i(0)$$
-$$ = \psi_1 + (x-\eta)\gamma_1 + u_1 - \psi_0 + (x-\eta)\gamma_0 +u_0$$
-Gather like terms....
-$$ = (\psi_1 - \psi_0) + (x-\eta)(\gamma_1-\gamma_0) +[u_i(1)-u_i(0)] $$
-$$ = \tau + 0 \times (\gamma_1 - \gamma_0)+0 = \tau$$
-Where $(x-\eta)$ is zero by construction (recall $\eta = E(x)) and $[u_i(1)-u_i(0)]$ is zero due to the zero conditional expectation.
-
-The observed outcome $y_i = y(0)+w_i[y_i(1)-y_i(0)]$ can be written. We know $y(0) =\psi_{0} + (x -\eta)\gamma _{0}  +u(0)$:
-
-$$y_i = \psi_0+w_i\tau+(x-\eta)(\gamma_0) + w_i(x_i-\eta)\delta + u_i(0)+w_i[u_i(1)-u_i(0)]$$ where $\delta = (\gamma_1-\gamma_0)$
-
-if we define $u_i = u_i(0)+w_i[u_i(1)-u_i(0)]$
-
-unconfoundedness implies:
-
-$$E(u_i|w_i,x_i) = E[u_i(0)|w_i,x_i]+w_iE\{[u_i(1) -u_i(0)]|w_i,x_i\}$$
-$$ = E[u_i(0)|x_i]+w_iE\{[u_i(1) -u_i(0)]|,x_i\} =0$$
-
- Thus, we can regress $y$ on $w$, all controls, and interactions between the policy variable and the demeaned controls.
- 
-We do not have to demean the controls when they appear by themselves, as failing to do so only changes the overall intercept. 
-
-We do, however, have to demean the interaction terms in order to obtain the average treatment effect as the coefficient on $w_{i}$ 
-
-We regress $y_{i}$ on $w_{i} ,x_{i 1} ,\ldots  ,x_{i k} ,w_{i} (x_{i 1} -\bar{x}_{1}) ,\ldots  ,w_{i} (x_{i k} -\bar{x}_{k})$ using all $n$ observations 
-
-The coefficient $\tau$ on $w_{i}$ will be the average treatment effect. 
-
-This regression is an unrestricted regression adjustment (URA) that allows the individual treatment effects to vary. 
-
-By contrast, a restricted regression adjustment (RRA) forces the treatment effect to be identical across all individuals. 
-
-#### An alternative method of obtaining the URA ATE
-The average treatment effect (ATE) from the unrestricted regression adjustment (URA) can also be obtained by running two separate regressions: 
-
-For the control group, use $n_{0}$ observations with $w_{i} =0$ and regress $y_{i}$ on $x_{i 1} ,\ldots  ,x_{i k}$ to obtain the intercept $\hat{\alpha }_{0}$ and slope estimates $\hat{\gamma }_{0 ,1} ,\ldots  ,\hat{\gamma }_{0 ,k}$ 
-
-Do the same thing for the $n_{1}$ observations in the treatment group with $w_{i} =1$ to obtain the intercept $\hat{\alpha }_{1}$ and slope estimates $\hat{\gamma }_{1 ,1} ,\ldots  ,\hat{\gamma }_{1 ,k}$ 
-
-For every unit $i$ in the sample, predict $y_{i} (0)$ and $y_{i} (1)$ regardless of whether the unit was in the control of treatment group
-\begin{gather*}\hat{y}_{i}^{(0)} =\hat{\alpha }_{0} +\hat{\gamma }_{0 ,1} x_{i ,1} +\ldots  +\hat{\gamma }_{0 ,k} x_{i ,k} \\
-\hat{y}_{i}^{(1)} =\hat{\alpha }_{1} +\hat{\gamma }_{1 ,1} x_{i ,1} +\ldots  +\hat{\gamma }_{1 ,k} x_{i ,k}\end{gather*}
-
-The average treatment effect is then $n^{ -1} \sum _{i =1}^{n}\left [\hat{y}_{i}^{(1)} -\hat{y}_{i}^{(0)}\right ]$ 
-
-Though this will yield the same ATE as running the regression with interaction terms, computing a standard error by hand can be tricky. Thus, the regression with interaction terms on the full sample is generally preferred. 
-
 
 
 ## Residual Analysis

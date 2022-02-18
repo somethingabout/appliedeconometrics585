@@ -1,0 +1,217 @@
+---
+title: "Policy Analysis"
+output: html_notebook
+---
+### Policy Analysis
+For a moment, think about causal effects.
+
+Often, you want to evaluate a policy or intervention that has two states in the world. In data terms, it's a binary terms. In real world terms, one group was exposed the the intervention (this is called the *treatment* group) and the other group was not exposed (this is called the *control* group). Language is important as we will return to using the term treatment group very frequently. 
+
+We know the *outcome* of these states - that somebody has either been part of the policy group or not. For example, they received free health insurance or they did not. 
+
+The treatment effect is simple
+$$te = y(1) - y(0)$$
+
+$y(1)$ being that they got the treatment and $y(0)$ that they did not.  You should be asking yourself, but wait - they only participated in one option. They can't do both, so how can you subtract the different between participating and not participating of the same person?!
+
+We need to rely on counterfactuals. Holding everything constant, what is the effect of health if they receive free health care. HOlding everything constant, what is the effect of health if they don't receive the benefit?  These are the potential outcomes (or counterfactual outcomes)
+
+So, we often can't estimate each person's treatment effect. INSTEAD, we estimate the **average treatment effect (ATE henceforth)** This is the average of the treatment effects across the entire population.
+
+$$\tau_{ATE} = E[te_i] = E[y_i(1)-y(0_i)]$$
+And because of the linearity of the expected value this is equal to:
+$$= E[y_i(1)]-E[y_i(0)]$$
+
+The observed outcome of $y_i$ can be
+
+$$y_i= (1-x_i)y_i(0)+x_iy_i(1)$$
+Where $y_i = y_i(0)$ if $x_i = 0$ and $y_i = y_i(1)$ if $x_i=1$
+
+We can rearrange:
+
+multiply out  $y_i = y_i(0)+y_i(0)x_i+x_iy_i(1)$ 
+
+rearrange and get:  $$y_i = y_i(0) + [y_i(1) - y_i(0)]x_i$$
+
+Now impose a pretty unrealistic assumption of constant treatment effects for all i
+
+$y_i(1)=\tau +y_i(0)$  which is also $\tau = y_i(1)-y_i(0)$
+
+Plug that into our equation of y_i and it simplifies to:
+$y_i = y_i(0) + \tau x_i$
+
+If we define $y_i(0) = \alpha_0 +u_i(0)$ (and recall that $\alpha_0 = E[y_i(0)]$ and as usual, the error term is expected value is zero $E[u_i(0)=0$]). Plug this into our equation for $y_i$ (replace $y_i(0)$):
+
+$y_i = \alpha_0 + \tau_ix_i + u_i(0)$
+
+If we define $\beta_0 = \alpha_0, \beta_1 = \tau$ and $u_i = u_i(0)$, we get the usual:
+
+$$y_i = \beta_0 + \beta_1x_i + u_i$$
+$\beta_1$ is just the treatment or causal effect.  This is often called the difference in means estimator and is the unbiased treatment effect $\tau$. If $x_i$ is independent of $u_i(0)$ then we know $E(u_i(0)|x_i] = 0$). This is the same as saying $x_i$ is independent of $y_i(0)$. This assumption is guaranteed only under *random assignment*.   This means that the treatment must be assigned randomly.
+
+The above equation is an RCT (randomized control trial).
+
+Suppose we relax the assumption of constant treatment effect. We can write the individual treatment effect as
+$$te_i = y_i(1)-y_i(0)=\tau_{ATE}+[u_i(1)- u_i(0)]$$
+recall where $y_i(1) = \alpha_1+u_i(1)$ and $\tau_{ATE} = \alpha_1 = \alpha_0$ \
+
+$\tau_{ATE}$ is the average across the entire population and $u_i(1) - u_i(0)$ is the deviation from the population average for unit i.
+
+Plug $te_i = y_i(1)-y_i(0)=\tau_{ATE}+[u_i(1)- u_i(0)]$ into 
+$y_i = y_i(0) + [y_i(1) - y_i(0)]x_i$ and get:
+
+$$y_i = \alpha_0 + \tau_{ATE}x_i + u_i(0)+[u_i(1)-u_i(0)]x_i = \alpha_0 + \tau_{ATE}x_i+u_i$$
+
+and the error term is $u_i(0)+[u_i(1)-u_i(0)]$
+
+random assignment assumption is now that x_i is independent of [u_i(0),u_i(1)], even thought $u_i$ depends on $x_i$
+
+$$E(u_i|x_i) = E[u_i(0)|x_i] + E[u_i(1)]-u_i(0)|x_i]x_i$$
+*note that the error term is not independent of $x_i$, but this isn't a problem for showing our unbiased estimator.  This makes sense because the variance should change depending if you were treated or untreated. These results only hold because of random assignment.
+
+
+Let's see what happens when we don't have random assignment (as it's very hard to have this situation without doing an experiment). Instead, let's imagine if we can have control variables that help predict the potential outcomes and determine the assignment in the treatment and control group - let's call this group of controls x.
+
+To reduce confusion we will rewrite $y_i= (1-x_i)y_i(0)+x_iy_i(1)$ as 
+
+$$y_i= (1-w_i)y_i(0)+w_iy_i(1)$$
+Then we can have the assumption that 
+$w$ is independent of $[y(0),y(1)]$ *conditional* on x
+
+This is called **conditional independence** where the variables in x are in the conditioning set. This is also called **unconfounded assignment** or **ignorable assignment**
+
+Let's see this difference in an example of job training - you'll see this example at various points in the course.
+```{r}
+data("jtrain98")
+
+simplediff <- lm(earn98 ~ train, data = jtrain98)
+summary(simplediff)
+
+conditionalx<- lm(earn98 ~ train+earn96+educ+age+married, data = jtrain98)
+ 
+ summary(conditionalx)
+
+```
+
+We can see that the effect of job training actually increases when we control for other factors. Without controls, the job training program  decreases income by \$2,005, but when we add controls we can see that the job training programs increase by \$2,410 The controls serve to create a kind of random assignment. As long as we include all of the variables that could effect assignment of job training. 
+
+So, when we think of control variables, what we want to do is to be able to explain all reasons as to why some people received the treatment and why other people didn't. 
+
+Another way to think about this is that we are trying to create an experiment where one group received treatment and the other didn't. But, the two groups are identical.  The controls are ensuring that the treatment effect is unbiased, ceteris paribus - holding all other factors constant. If we hold all factors that differentiate the two groups constant, we can say something about the treatment effect. 
+
+
+### The Self-Selection Problem
+
+Consider the following model:
+\begin{gather*}E (y\vert w ,\boldsymbol{x}) =\alpha  +\tau  w +\gamma _{1} x_{1} +\ldots  +\gamma _{k} x_{k} \\
+y =(1 -w) y (0) +w y (1)\end{gather*}
+
+We include $x_{j}$ to account for the possibility that program participation ($w$) is not randomly assigned.
+
+Participation decisions may differ systematically by individual characteristics - this is the *self-selection problem*
+
+For example, children eligible for programs like Head Start participate largely based on parental decisions. These parental decisions depend on characteristics like family background and structure which also tend to predict child outcomes. Thus, we need to control for these characteristics to get closer to random assignment 
+
+Another example could be looking at the effect of drug use on unemployment status. We need to account for any systematic differences
+between those who use drugs and those who do not. Drug use may be correlated with a number of factors that also influence unemployment. If we do not control for these factors, then we cannot identify the causal effect of drug use on unemployment status.
+
+Or it can be at the aggregate level - city or state decisions on laws, let's say gun violence, may be implemented systematically related to other factors that affect violent crime. 
+
+ By regressing $y_{i}$ on $w_{i} ,x_{1 i} ,\ldots  ,x_{k i}$, we are engaging in regression adjustment and the coefficient on $w_{i}$ is $\hat{\tau }_{i}$ is the regression adjusted estimator. 
+
+**We can relax the assumption of a constant treatment effect.**
+
+Recall that unconfoundedness or the ignorability assumption is that we have sufficient explanatory variables (these are called *covariates* - factors that can vary with participation decisions and potential outcomes) so that conditional on those variables, program participation is as good as random.
+
+We still assume unconfoundedness such that $w$ is independent of $[y(0) ,y (1)]$, conditional on $x_{1} ,\ldots  ,x_{k}$ 
+
+Assume linear conditional means, but allow for separate equations for $y (0)$ and $y (1)$
+
+$$y (0) =\psi _{0} + (x -\eta)\gamma _{0}  +u (0)$$
+
+$$y(1) =\psi _{1} + (x -\eta)\gamma _{1}  +u (1)$$
+
+$$ \eta _{j} =E (x_{j})\text{,}\psi _{0} =E[y(0)]\text{, and}\psi _{1} =E[y(1)]$$
+
+We center the covariates $(x_{j})$ around their means so that the intercepts $\psi _{0}$ and $\psi _{1}$ are the expected values of the two potential outcomes \
+
+ie $\eta_j$ is the population mean of $x_j$, $\psi_{0} = E[y(0)]$  and $\psi_{1} = E[y(1)]$
+
+
+$$te_i = y_i(1) - y_i(0)$$
+$$ = \psi_1 + (x-\eta)\gamma_1 + u_1 - \psi_0 + (x-\eta)\gamma_0 +u_0$$
+Gather like terms....
+$$ = (\psi_1 - \psi_0) + (x-\eta)(\gamma_1-\gamma_0) +[u_i(1)-u_i(0)] $$
+$$ = \tau + 0 \times (\gamma_1 - \gamma_0)+0 = \tau$$
+Where $(x-\eta)$ is zero by construction (recall $ \eta = E(x))$ and $[u_i(1)-u_i(0)]$ is zero due to the zero conditional expectation.
+
+The observed outcome $y_i = y(0)+w_i[y_i(1)-y_i(0)]$ can be written. We know $y(0) =\psi_{0} + (x -\eta)\gamma _{0}  +u(0)$:
+
+$$y_i = \psi_0+w_i\tau+(x-\eta)(\gamma_0) + w_i(x_i-\eta)\delta + u_i(0)+w_i[u_i(1)-u_i(0)]$$ where $\delta = (\gamma_1-\gamma_0)$
+
+if we define $u_i = u_i(0)+w_i[u_i(1)-u_i(0)]$
+
+unconfoundedness implies:
+
+$$E(u_i|w_i,x_i) = E[u_i(0)|w_i,x_i]+w_iE\{[u_i(1) -u_i(0)]|w_i,x_i\}$$
+$$ = E[u_i(0)|x_i]+w_iE\{[u_i(1) -u_i(0)]|,x_i\} =0$$
+
+ Thus, we can regress $y$ on $w$, all controls, and interactions between the policy variable and the demeaned controls.
+ 
+We do not have to demean the controls when they appear by themselves, as failing to do so only changes the overall intercept. 
+
+We do, however, have to demean the interaction terms in order to obtain the average treatment effect as the coefficient on $w_{i}$ 
+
+We regress $y_{i}$ on $w_{i} ,x_{i 1} ,\ldots  ,x_{i k} ,w_{i} (x_{i 1} -\bar{x}_{1}) ,\ldots  ,w_{i} (x_{i k} -\bar{x}_{k})$ using all $n$ observations 
+
+The coefficient $\tau$ on $w_{i}$ will be the average treatment effect. 
+
+This regression is an unrestricted regression adjustment (URA) that allows the individual treatment effects to vary. 
+
+By contrast, a restricted regression adjustment (RRA) forces the treatment effect to be identical across all individuals. 
+
+
+```{r}
+data("jtrain98")
+
+#I'm going to create all my controls to be demeaned with mutate
+earn98demean <-mutate(jtrain98, mean_earn96_adj  = earn96-mean(jtrain98$earn96), mean_educ_adj = educ-mean(jtrain98$edu), mean_age_adj = age-mean(jtrain98$age), mean_marr_adj = married-mean(jtrain98$married))
+
+#interact treatment with my controls
+vary_treatment<- lm(earn98 ~ train+ train*mean_educ_adj+train*mean_age_adj+train*mean_marr_adj+train*mean_earn96_adj, data = earn98demean)
+ 
+ summary(vary_treatment)
+
+```
+
+#### An alternative method of obtaining the URA ATE
+The average treatment effect (ATE) from the unrestricted regression adjustment (URA) can also be obtained by running two separate regressions: 
+
+For the control group, use $n_{0}$ observations with $w_{i} =0$ and regress $y_{i}$ on $x_{i 1} ,\ldots  ,x_{i k}$ to obtain the intercept $\hat{\alpha }_{0}$ and slope estimates $\hat{\gamma }_{0 ,1} ,\ldots  ,\hat{\gamma }_{0 ,k}$ 
+
+Do the same thing for the $n_{1}$ observations in the treatment group with $w_{i} =1$ to obtain the intercept $\hat{\alpha }_{1}$ and slope estimates $\hat{\gamma }_{1 ,1} ,\ldots  ,\hat{\gamma }_{1 ,k}$ 
+
+For every unit $i$ in the sample, predict $y_{i} (0)$ and $y_{i} (1)$ regardless of whether the unit was in the control or treatment group
+\begin{gather*}\hat{y}_{i}^{(0)} =\hat{\alpha }_{0} +\hat{\gamma }_{0 ,1} x_{i ,1} +\ldots  +\hat{\gamma }_{0 ,k} x_{i ,k} \\
+\hat{y}_{i}^{(1)} =\hat{\alpha }_{1} +\hat{\gamma }_{1 ,1} x_{i ,1} +\ldots  +\hat{\gamma }_{1 ,k} x_{i ,k}\end{gather*}
+
+The average treatment effect is then $n^{ -1} \sum _{i =1}^{n}\left [\hat{y}_{i}^{(1)} -\hat{y}_{i}^{(0)}\right ]$ 
+
+Though this will yield the same ATE as running the regression with interaction terms, computing a standard error by hand can be tricky. Thus, the regression with interaction terms on the full sample is generally preferred. 
+
+We can reproduce the treatment effect from the URA when we used interactions, but doing this alternative estimation:
+
+```{r}
+
+train_1 <- lm(earn98 ~ earn96+educ+age+married, data = subset(jtrain98, train ==1))
+train_0 <- lm(earn98 ~ earn96+educ+age+married, data = subset(jtrain98, train ==0))
+
+train_1y_hat<-predict(train_1, jtrain98)
+train_0y_hat<-predict(train_0, jtrain98)
+mean(train_1y_hat-train_0y_hat)
+```
+And here, we have the same coefficient! But, no standard error. We'd have to calculate that in a different way - rather have R do the heavy lifting by estimating the demeaned interactions. 
+
+
+
+
