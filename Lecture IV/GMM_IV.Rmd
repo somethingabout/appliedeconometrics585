@@ -16,6 +16,30 @@ One big problem that we often face in regression analysis is **endogeneity**. Th
 
 It is of no surprise then, that the standard IV estimator is a special case of a generalized method of moments (GMM) estimator. We're going to go into detail about IVs (and hopefully relate them back to GMM).
 
+The method requires that a certain number of moment conditions be specified for the model. These moment conditions are functions of the model parameters and the datA. The GMM method then minimizes a certain norm of the sample averages of the moment conditions, and can therefore be thought of as a special case of minimum-distance estimation.
+
+Recall that we can define moments for random variables. A collection of moments uniquely determines the distribution. 
+
+For example, we define moments for a normal distribution which is that the expected value of a random variable is equal to the mean (the first moment), the second moment is the variance, the skewness (third moment) is equal to 0 (ie symmetric) and the kurtosis is equal to 4 (fourth moment). All of these moments determine the normal distribution.
+
+Moments of any population can be re-created in their sample moments. As usual, we don't know the true population moments, but we use the sample to recreate a sample equivalent. 
+
+For example, the first moment that $E[X] = \mu$ we re-create with $\frac{1}{N}\sum^N_{i=1}x_i=\hat{\mu}$ 
+
+In the second moment, $Var(X)=\sigma^2$ is re-created with a sample equivalent $\frac{1}{N}\sum^N_{i=1}(x_i-\hat{\mu})^2=\hat{\sigma}^2$
+
+Here, we have two moments and two unknowns and we can find exact solutions to our estimators of our parameters (OLS!). This is plain old Method of Moments where the number of moment condition equals the number of parameters
+
+However, we've got two other moments that define our distribution:
+The third moment, $E[(x-\mu)^3]=\sigma^3$ and its sample analog of  $\frac{1}{N}\sum^N_{i=1}(x_i-\hat{\mu})^3=\hat{\sigma}^3$ and the fourth moment, $E[(x-\mu)^4]=\sigma^4$ and its sample analog $\frac{1}{N}\sum^N_{i=1}(x_i-\hat{\mu})^4=\hat{\sigma}^4$
+
+In OLS, we make some assumptions about them - in particular, normality.  But, we can estimate OLS using a GMM approach. If we don't put particular assumptions on these moments, we have 4 equations and 2 unknowns (M (moment conditions) > k (number of parameters)) - this is the issue of GMM - there aren't exact solutions. This situation is called overidentification and it's solvable. 
+
+GMM of OLS is when we choose a solution for $\hat{\beta}$ to solve the moment condition $\frac{1}{N}\sum^N_{i=1}[x_i(y – bx_i)] = 0$ with the zero conditional mean assumption. 
+
+Given certain assumptions, we can define moment conditions on our sample to them to help us choose an estimator (as above). We'll choose estimators of our population parameters of interest to solve some condition.
+
+ In models for which there are more moment conditions than model parameters, GMM estimation provides a straightforward way to test the specification of the proposed model. This is an important feature that is unique to GMM estimation -> this is essentially the point of GMM, a way to solve for our population parameters of interest when our model is over identified.
 
 ## IV
 
@@ -59,7 +83,8 @@ where we think $c l a s s i z e$ is endogenous:
 \end{equation*}\par\pagebreak\relax 
 
 
-**Why we can't directly test $C o v (z ,u) =0$}**
+**Why we can't directly test $C o v (z ,u) =0$**
+
  It may be tempting to devise a test based on the sample correlation between $z_{i}$ and $\hat{u}_{i}$, where $\hat{u}_{i}$ are the residuals obtained from a regression of $y_{i}$ on $x_{i}$. 
  
 The problem with this test is that if $x$ is endogeneous, $\hat{u}_{i}$ are inconsistent estimates of the population regression errors $u_{i}$. 
@@ -79,7 +104,7 @@ An important difference between these two requirements: We cannot test (1), but 
  Take the covariance of $z$ with both sides of the equation 
 
 \begin{equation*}y =\beta _{0} +\beta _{1} x +u
-\end{equation*}to get 
+\end{equation*} to get 
 
 \begin{equation*}C o v (z ,y) =\beta _{1} C o v (z ,x) +C o v (z ,u)\text{.}
 \end{equation*}\par\pagebreak\relax 
@@ -93,6 +118,8 @@ An important difference between these two requirements: We cannot test (1), but 
 \end{equation*}
 
  We have written $\beta _{1}$ as *two population moments* in observable variables.
+
+Note: The Wald Estimator described in MHE is essentially the same estimator as above, but with a binary instrumental variable. 
 
  Given a random sample $\{(y_{i} ,x_{i} ,z_{i}) :i =1 ,\ldots  ,n\}$, use the sample covariances to estimate the population covariances. (Method of moments estimation). 
 
@@ -113,6 +140,8 @@ The two are not equivalent: Unbiasedness is a statement about the expected value
 Bias can be large if the correlation between  $z$ and $x$ is ``small.'' This is something to check for to get a general sense of the size of the bias - this problem is known as a weak instrument (more on this in a moment)
 
  Also good news - no restrictions on the nature of $x_{i}$ or $z_{i}$. For example, each could be binary, or just one of them.
+ 
+
 
 
 ### How do we consistently estimate $\beta_1$?
@@ -120,7 +149,9 @@ Bias can be large if the correlation between  $z$ and $x$ is ``small.'' This is 
 There are a few ways to do this (and we actually already covered one method above, but let's just review it again)
 
 1. 2SLS: By literally applying two-stages of OLS, with an artificial regressor in the second stage.
+
 2. IV: By a direct method of moments approach.
+
 3. ILS: By an indirect least squares approach (which is less general).
 
 But, the most common approach is the Two Staged Least Squares (TSLS) way, so we'll start with this perspective. 
@@ -149,10 +180,11 @@ $u_i$. We don’t know $π_0$ and $π_1$, but the regression of $X_i$ on $Z_i$ s
 the OLS estimates \hat{\pi_0} and \hat{\pi_1} are consistent (unbiased in large samples). The purpose
 of the predicted values \hat{X_i} is to isolate a part of $X_i$ that is independent of $u_i$.
 
-2. (Second stage) Replace $X_i$ in the equation of interest by $\hat{X_i} = \hat{\pi_0} + \hat{\pi_1}Z_i$ :
+2. (Second stage) Replace $X_i$ in the equation of interest by $\hat{X_i} = \hat{\pi_0} + \hat{\pi_1}Z_i$:
+
 \begin{equation}
 Y_i = \beta_0 + \beta_1\hat{X_i}+\check{w_o}
-\end{equatoin}
+\end{equation}
 and estimate this modified equation by OLS. The regressor $\hat{X_i}$ is uncorrelated with both
 $u_i$ and $\hat{v_i} = X_i − \hat{X_i}$, hence also with the error term $\check{w_i} = u_i + \beta_1\hat{v_i}$. Hence Ass. 1 holds here, so the OLS estimate of $\beta_1$ is consistent.
 
@@ -161,7 +193,7 @@ Algebraically:
 OLS Stage 1:
 
 \begin{equation}
-\hat{\pi_1} = \frac{s_{ZX}}{s^2_Z}
+\hat{\pi_1} = \frac{s_{XZ}}{s^2_Z}
 \end{equation}
 
 OLS Stage 2:
@@ -169,17 +201,18 @@ OLS Stage 2:
 \begin{equation}
 \hat{\beta_1}^{2SLS} = \frac{s_{\hat{X}Y}}{s^2_\hat{X}}
 \end{equation}
+
 (s is the standard deviation)
 
 Working out $s_{\hat{X}Y}$ and $s^2_{\hat{X}}$ with the help of equation $\hat{X_i}=\hat{\pi_0}+\hat{\pi_1}Z_i$,
 
 \begin{equation}
-\hat{\beta_1}^{2SLS} = \frac{s_{\hat{X}Y}}{s^2_\hat{X}} =  \frac{\hat{\pi_1}s_{ZY}}{\hat{\pi}^2_1s^2_Z} = \frac{s_{ZY}}{\hat{\pi_1}s^2_Z}
+\hat{\beta_1}^{2SLS} = \frac{s_{\hat{X}Y}}{s^2_\hat{X}} =  \frac{\hat{\pi_1}s_{YZ}}{\hat{\pi}^2_1s^2_Z} = \frac{s_{YZ}}{\hat{\pi_1}s^2_Z}
 \end{equation}
 
-Then substituting out $\hat{\pi_1}$ using $\hat{\pi_1} = s_{ZX}/s^2_Z$:
+Then substituting out $\hat{\pi_1}$ using $\hat{\pi_1} = s_{XZ}/s^2_Z$:
 \begin{equation}
-\hat{\beta_1}^{2SLS} = \frac{s_{ZY}}{\hat{\pi_1}s^2_Z} = \frac{s_{ZY}}{s_{ZX}}
+\hat{\beta_1}^{2SLS} = \frac{s_{YZ}}{\hat{\pi_1}s^2_Z} = \frac{s_{YZ}}{s_{XZ}}
 \end{equation}
 
 Another perspective is direct IV estimation - and this is method of moments!
@@ -403,9 +436,9 @@ data(card)
 
 summary(select(card, educ, nearc4))
  
-card_ds<- lm(educ ~ nearc4, card)
+card_ols<- lm(educ ~ nearc4, card)
 
-coeftest(card_ds, vcov = vcovHC(card_ols, type="HC1"))
+coeftest(card_ds, vcov = vcovHC(card_ols, type="HC0"))
 ```
 educ and nearc4 are strongly enough related: being near a 4-year college
 increases educ by almost a year. t statistic is pretty large.

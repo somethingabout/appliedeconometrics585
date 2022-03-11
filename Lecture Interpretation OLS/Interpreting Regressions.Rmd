@@ -335,12 +335,15 @@ ggplot(data.frame(x = c(-15,15)), aes(x = x)) +
 2. If $\hat{\beta_1} < 0$  and $\hat{\beta_2} > 0$, the slope is initially negative, but it increases (gets less negative) as x increases. The function has a U shape and turns at the x∗ given above. But now x∗ is the minimum of the function. Once $x > x∗$, the
 slope is positive.
 ```{r}
-library(tidyverse)
 quadratic <- function(x){-x+x^2}
 
 #plot it
 ggplot(data.frame(x = c(-15,15)), aes(x = x)) +
   stat_function(fun = quadratic) + xlim(c(-15, 15)) 
+
+
+#curve(-x+x^2 , from=1, to=10, n=300, xlab="xvalue", ylab="yvalue", 
+ #            col="blue", lwd=2, main=expression(hat(beta[1])<0 ~ "," ~hat(beta[2])>0))
 ```
 
 In Cases 1 and 2, we should ask: Does the turning point makes sense? If it does not make sense for the slope to change signs, does the sign change happen only at an extreme value of x?
@@ -349,23 +352,20 @@ In Cases 1 and 2, we should ask: Does the turning point makes sense? If it does 
 
 ```{r}
 library(tidyverse)
-quadratic <- function(x){x+x^2}
 
-#plot it
-ggplot(data.frame(x = c(-15,15)), aes(x = x)) +
-  stat_function(fun = quadratic) + xlim(c(-15, 15)) 
+
+curve(  x+x^2 , from=1, to=10, n=300, xlab="xvalue", ylab="yvalue", 
+             col="blue", lwd=2, main=expression(hat(beta[1])>0 ~ "," ~hat(beta[2])>0))
 ```
 4. If $\hat{\beta_1} < 0$  and $\hat{\beta_2} < 0$, the slope is always negative and becomes more negative (increases in absolute value) as x in creases. The turning point is negative.
 
 Adding additional explanatory variables changes nothing of the calculations, except for giving a ceteris paribus interpretation.
 
 ```{r}
-library(tidyverse)
-quadratic <- function(x){-x-x^2}
 
 #plot it
-ggplot(data.frame(x = c(-15,15)), aes(x = x)) +
-  stat_function(fun = quadratic) + xlim(c(-15, 15)) 
+curve(  -x-x^2 , from=1, to=10, n=300, xlab="xvalue", ylab="yvalue", 
+             col="blue", lwd=2, main=expression(hat(beta[1])<0 ~ "," ~hat(beta[2])<0))
 ```
 
 
@@ -554,7 +554,7 @@ where $\bar{x}_2$ and $\bar{x}_1$ are the sample averages and the $\hat{\beta_2}
 
 It is often easier to let a regression compute $\hat{\gamma_1}$ and $\hat{\gamma_2}$, and to get appropriate standard errors. We can write in the population
 \begin{equation}
-y = \alpha_0 + \gamma_1 x_1 +  \gamma_2 x_2 + \beta_3(x_1 - \mu_1) +(x_2 - \mu_2) +u
+y = \alpha_0 + \gamma_1 x_1 +  \gamma_2 x_2 + \beta_3(x_1 - \mu_1) (x_2 - \mu_2) +u
 \end{equation}
 
 In other words, we subtract the means before creating the interactions.
@@ -584,6 +584,8 @@ Now, let's see the regression with mean adjusted values.
 data(wage2)
 
 mean_educ = mean(wage2$educ)
+
+summary(wage2$IQ)
 mean_iq = mean(wage2$IQ)
 
 #create a new variable using mutate that is the mean adjusted value for educ and IQ
@@ -759,6 +761,8 @@ With lwage as the dependent variable, we can give them a percentage change inter
 wage1 <-mutate(wage1, marrmale = married*(1-female),   marrfem = married*female, singmale = (1-married)*(1-female), singfem = (1-married)*female)
 
 summary(lm(log(wage) ~ marrmale +marrfem +singfem +educ +stats::poly(exper,2) + stats::poly(tenure,2), data = wage1))
+
+summary(lm(log(wage) ~ female+married+ female*married +educ +stats::poly(exper,2) + stats::poly(tenure,2), data = wage1))
 ```
 What if we want to compare married women and single women? 
 
@@ -802,7 +806,7 @@ Take average as the base group.
 ```{r}
 summary(lm(lwage ~belowav+ abovav, data = beauty))
 ```
-Controlling for no other factors, those with below average looks earn about 20.8% less than those with average looks. The t statistic is very significant (p- valueis super low).
+Controlling for no other factors, those with below average looks earn about 20.8% less than those with average looks. The t statistic is very significant (p- value is super low).
 
 Those with above average looks are estimated to earn about 4.5% less than those with average looks, but the p-value is .264. So there is little evidence the effect is different from zero.
 

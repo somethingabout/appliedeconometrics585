@@ -283,7 +283,7 @@ Properly interpreting a CI is a bit tricky. One often sees statements such as �
 
 - The correct way to interpret a CI is to remember that the endpoints, $\beta_j − c \cdot se(\beta_j )$ and $\beta_j + c \cdot se(\beta_j)$ ), change with each sample (or at least can change). That is, the endpoints are random outcomes that depend on the data we draw.
 
-- What a 95% CI means is that for 95% of the random samples that we draw from the population, the interval we compute using the rule $\beta_j ± c \cdot se(\beta_j$ ) will include the value $\beta_j$. But for a particular sample we do not know whether βj is in the interval.
+- What a 95% CI means is that for 95% of the random samples that we draw from the population, the interval we compute using the rule $\hat{\beta_j} ± c \cdot se(\hat{\beta_j})$  will include the value $\beta_j$. But for a particular sample we do not know whether $β_j$ is in the interval.
 
 - This is similar to the idea that unbiasedness of $\beta_j$ does not means that $\beta_j = \beta_j$ . Most of the time $\beta_j$ is not $\beta_j$ . Unbiasedness means $E(\beta_j ) = \beta_j$.
 
@@ -347,7 +347,7 @@ Because the individual coefficients, especially on hrunsyr and rbisyr, are impre
 
 The original model, containing all variables, is the unrestricted model: 
 
-$lsalary = β0 + β1years + β2gamesyr + β3bavg +β4hrunsyr + β5rbisyr + u$
+$lsalary = β_0 + β_1years + β_2gamesyr + _β3bavg +β_4hrunsyr + β_5rbisyr + u$
 
 When we impose $H_0 :β_3 =0, β_4 =0,β_5 =0$ ,we get the restricted model:
 $lsalary = β_0 + β_1years + β_2gamesyr + u$

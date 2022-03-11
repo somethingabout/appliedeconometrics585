@@ -7,7 +7,7 @@ output: html_notebook
 
 [Details on the optimization problem that LM solves can be found here](https://medium.com/@andrew.chamberlain/a-simple-explanation-of-why-lagrange-multipliers-works-253e2cdcbf74])
 
-This test doesn't test for heteroskedasticity. It's a test that's similar to the Wald test and is valid asymptotically (therefore only useful for large datasets). This test can see if adding variables the model is a significant improvement. It's used to see if one model is better than another when other measures of fit (like the R2) are not appropriate. More details about the differences/similarities of these test can be found [here](https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faqhow-are-the-likelihood-ratio-wald-and-lagrange-multiplier-score-tests-different-andor-similar/).
+This test doesn't test for heteroskedasticity. It's a test that's similar to the Wald test and is valid asymptotically (therefore only useful for large datasets). This test can see if adding variables to the model is a significant improvement. It's used to see if one model is better than another when other measures of fit (like the R2) are not appropriate. More details about the differences/similarities of these test can be found [here](https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faqhow-are-the-likelihood-ratio-wald-and-lagrange-multiplier-score-tests-different-andor-similar/).
 
 This test statistic is useful for asymptotic analysis, as well. This test statistic relies on the Gauss-Markov assumptions - the same assumptions that justify the t and f statistic in large samples (and we don't need the normality assumption)
 
@@ -24,15 +24,15 @@ which has q exclusion restrictions on . Like F testing, the alternative is that 
 
 LM statistic requires estimation of the *restricted* model only, so let's assume we run 
 \begin{equation}
-y = \tilde{\beta_0} + \tilde{\beta_1} + \dots + \tilde{\beta_{k-qX_k-q}} +\tilde{u}
+y = \tilde{\beta_0} + \tilde{\beta_1} + \dots + \tilde{\beta}_{k-q}X_{k-q} +\tilde{u}
 \end{equation}
 Where tilde indicates that the estimates are from the restricted model. 
 
 IF the omitted variables truly have zero population coefficients, then the error term should be uncorrelated with each of these variables in the sample. We must use all of the regressors - the omitted regressors in the restricted model are correlated with the regressors that appear in the restricted model:
 
-\begin{equation}
-\tilde{u} on X_1, x_2, \dots, x_k
-\end{equation}
+
+$\tilde{u}$ on $X_1, x_2, \dots, x_k$
+
 
 This is an *auxiliary regression*
 
@@ -67,7 +67,8 @@ pchisq(2, 2)
 
 ```
 
-#Heteroskedasticity
+# Heteroskedasticity
+
 As a reminder, heteroskedasticity does not cause biasedness, it doesn't break Assumptions 1-4. 
 
 However, if Var(u|x) depends on x – that is, heteroskedasticity is present – then OLS is no longer BLUE. In principle, it is possible to find unbiased estimators that have smaller variances than the OLS estimators. A similar comment holds for asymptotic efficiency.
@@ -98,20 +99,26 @@ we can easily see the plim of each is $\rho ^{2} =1 -\sigma _{u}^{2}/\sigma _{y}
 
 ### Heteroskedasticity-Robust Inference after OLS Estimation
 
-Fortunately, standard errors and all test statistics can be modified to be valid in the presence of \textbf{heteroskedasticity of unknown
-form}. This includes the possibility of homoskedasticity, that is, MLR.5 actually holds. So we can compute CIs and conduct statistical inference without worrying about whether MLR.5 holds. 
+Fortunately, standard errors and all test statistics can be modified to be valid in the presence of \textbf{heteroskedasticity of unknown form}. This includes the possibility of homoskedasticity, that is, MLR.5 actually holds. So we can compute CIs and conduct statistical inference without worrying about whether MLR.5 holds. 
 
 Most regression packages include an option with OLS estimation that computes **heteroskedasticity-robust standard errors**, which then produces **heteroskedasticity-robust t statistics** and 
 **heteroskedasticity-robust confidence intervals.** Not surprisingly, they depend on the OLS residuals.
+
+
+ $$ \frac{\sum^n_{i=1}(x_i -\bar{x})^2\hat{u}_i^2)}{SST^2_x} $$
+ The heteroskedastic robust standard error is:
+ 
+ $$\hat{var}(\hat{\beta_j}) = \frac{\sum^n_{i=1}\hat{r}_{ij}^2\hat{u}_i^2}{SSR^2_j} $$
+where $\hat{r}_{ij}$ is the ith residual from regressing x on all other independent variables and $SSR_j$ is the sum of square residuals from this regrssion. 
 
 Question: If we can compute standard errors and test statistics that work with or without Asssumption MLR.5, how come we bother with the usual standard errors at all? 
 
 Answers:
 (1) Tradition (not necessarily a good answer). 
+
 (2) A better answer: The heteroskedasticity-robust test statistics and CIs only have asymptotic justification, even if the full set of CLM assumptions hold. (And the robust statistics are virtually always different from the usual statistics, regardless of which set of assumptions holds in the population.)
 
-With smaller sample sizes, the heteroskedasticity-robust statistics need not be well behaved. In some cases, they can have more bias
-than the usual statistics. 
+With smaller sample sizes, the heteroskedasticity-robust statistics need not be well behaved. In some cases, they can have more bias than the usual statistics. 
 
 Some researchers, especially with large sample sizes, only report the heteroskedasticity-robust statistics. 
 
@@ -121,9 +128,14 @@ In general, do as Wooldridge does, in OLS, always report your robust standard er
 
 ![robust_se_wooldridge](robust.png)
 
-Trivia not:
+Trivia time:
 Sometimes the HC SE are called a sandwich estimator (there are many) That's because if we use the linear algebra notation of the variance of $\beta$, we get  $Var(\hat{\beta_j}) = (X^TX)^{-1}X^T\Omega X(X^TX)^{-1}$, where the "bread" is $(X^TX)^{-1}$ and the meat ($X^T\Omega X$) and robust SE is where we change the meat.
+
+
+ 
 ```{r}
+library(wooldridge)
+
 data(wage1) 
 #without robust SE
 wage_educ <-lm(wage ~educ + exper + I(exper^2)+female + married, data =wage1)
@@ -135,13 +147,13 @@ library(sandwich) #need this to use lmtest package
 
 library(lmtest)
 
-coeftest(wage_educ, vcov = vcovHC(wage_educ, type="HC1"))
+coeftest(wage_educ, vcov = vcovHC(wage_educ, type="HC0"))
 
 
 
 ```
 
-Let's compare the SE of education, we can see that the robust SE od educ is higher than the non-robust SE. However, the changes are slight and it doesn't change our "decision" to reject the null at the 1\% level. The CIs are slightly wider, t statistics slightly lower.
+Let's compare the SE of education, we can see that the robust SE of educ is higher than the non-robust SE. However, the changes are slight and it doesn't change our "decision" to reject the null at the 1\% level. The CIs are slightly wider, t statistics slightly lower.
 
 It is sometimes incorrectly claimed that the heteroskedasticity-robust standard errors for OLS are always larger than the usual OLS standard errors. 
 
@@ -236,7 +248,7 @@ Under the null, it makes sense to assume that $v$ is independent of the $x_{j}$,
 Therefore, we can test 
 
 \begin{equation*}H_{0} :\delta _{1} =\delta _{2} =\ldots  =\delta _{k} =0
-\end{equation*}using the usual $F$ test for joint significance of all explanatory variables.\par\pagebreak\relax 
+\end{equation*}using the usual $F$ test for joint significance of all explanatory variables.
 
 We are testing the null hypothesis that the \textit{squared} error is uncorrelated with each of the explanatory variables.
 
@@ -251,7 +263,9 @@ satisfyies Assumption MLR.6 (normality of $u$), $u^{2}/\sigma ^{2}$ has a $\chi 
 Write the equation for a random draw $i$ as 
 
 \begin{equation*}u_{i}^{2} =\delta _{0} +\delta _{1} x_{i 1} +\ldots  +\delta _{k} x_{i k} +v_{i}\text{.}
-\end{equation*}${\Large  \bullet }$ Now, we do not observe $u_{i}^{2}$ because these are the squared errors! (Remember, we observe the $y_{i}$ and $x_{i j}$ for each draw $i$, but not the error $u_{i}$.) 
+\end{equation*}
+
+Now, we do not observe $u_{i}^{2}$ because these are the squared errors! (Remember, we observe the $y_{i}$ and $x_{i j}$ for each draw $i$, but not the error $u_{i}$.) 
 
 Solution: Replace the errors with the OLS residuals. In other words,the equation we estimate looks like 
 
@@ -277,8 +291,8 @@ If we forget to square the residuals, and regress $\hat{u}_{i}$ on $x_{i 1}\text
 
 The test from 
 
-\begin{equation*}\hat{u}_{i}^{2}\text{on}x_{i 1} ,\text{}x_{i 2} \ldots  ,\text{}x_{i k}
-\end{equation*}is a version of the **Breusch-Pagan test** for heteroskedasticity}. It is the preferred version. Other versions
+\begin{equation}\hat{u}_{i}^{2}\text{on}x_{i 1} ,\text{}x_{i 2} \ldots  ,\text{}x_{i k}
+\end{equation} is a version of the **Breusch-Pagan test** for heteroskedasticity}. It is the preferred version. Other versions
 of the B-P test assume that $u$ has a normal distribution (Assumption MLR.6). The current test does not require normality and is actually easier to compute.
 
 ### Breusch-Pagan Test
@@ -311,6 +325,7 @@ wage_resids_sq <- wage_resids^2
 wage_bp <- lm(wage_resids_sq ~ female +exper+coll, data = wage1)
 summary(wage_bp)
 # run regression with same independent variables but switch dependent with saved residuals
+
 # evaluate F stat that all independent variables are jointly equal to 0 - it is easy to obtain the F statistic we need as it's in the bottom of the output in a regression.
 
 # Step three:
@@ -321,7 +336,7 @@ summary(wage_bp)
 
 This is a very strong statistical rejection of the null of homoskedasticity.
 
-The negative coefficient on femaleshow wages are less variable for women than for men. So average wages are lower for women and there is less variability about that average.
+The negative coefficient on female show wages are less variable for women than for men. So average wages are lower for women and there is less variability about that average.
 
 Variability appears to increase with schooling (college).
 
@@ -380,7 +395,7 @@ If we find heteroskedasticity after OLS estimation, at a minimum, we should comp
 
 If heteroskedasticity is present and we think $E (y\vert \mathbf{x})$ has been properly modeled, we might want to improve on OLS, as OLS is no longer BLUE (because Assumption MLR.5 fails). To ensure we get a better estimator than OLS we need to know the form of the heteroskedasticity. 
 
-Even if we do not correctly specify the form of heteroskedasticity, sometimes we can do better than OLS by using an incorrect variance function. See Section 8.4 in Wooldridge for a discussion of weighted least squares.
+Even if we do not correctly specify the form of heteroskedasticity, sometimes we can do better than OLS by using an incorrect variance function. See Section 8.4 in Wooldridge for a discussion of weighted least squares (also discussed later in this lecture)
 
 #### LPM \& Heteroskedasticity Reminder
 We noted earlier that when $y$ is binary, there must be heteroskedasticity except in the special case that no $x_{j}$ affects $y$. 
@@ -398,12 +413,16 @@ apple <- mutate(apple, ecobuys = if_else(ecolbs>0,1,0))
 apple_lpm<- lm(ecobuys ~ ecoprc+regprc+faminc+numlt5+num5_17+num18_64+numgt64, data = apple)
 
 summary(apple_lpm)
-coeftest(apple_lpm, vcov = vcovHC(apple_lpm, type="HC1"))
+coeftest(apple_lpm, vcov = vcovHC(apple_lpm, type="HC0"))
 ```
 Even though we know there is heteroskedasticity, the usual and robust standard errors are pretty similar.
 
 ## Weighted Least Squares
-If we know what the form of the variance is (as a function of explanatory variables), then Weighted Least Squares (WLS) is more efficient than OLS.  If you know something about the variance, then we can directly model it and incorporate it into our estimation method.
+In OLS, we know that if you have heteroskedasticity your estimators will be inefficient. We can use a different estimation method called generalized least squares that is more amenable to this problem, specifically:
+$$Var(u_i|x_i)=h(x_i)\neq\sigma^2$$  <-not homoskedastic, there exists some functional form relationship with x
+$$Cov(u_i,u_j) \neq0, i \neq j$$ <- sum degree of serial correlation (ok, we will come back to this in panel data)
+
+If we know what the form of the variance is (as a function of explanatory variables - the two functional forms above or just one of them if you don't have the serial correlation problem), then Weighted Least Squares (WLS) is more efficient than OLS. If you know something about the variance, then we can directly model it and incorporate it into our estimation method.
 
 We can assume
 \begin{equation}
@@ -426,7 +445,7 @@ Var(u|x) = \sigma^2inc_i
 We will take our original equation and transform it into a an equation that has homoskedastic errors.  Since we know $h_i$ is just a function of $x_i$,  then $u_i/\sqrt{h_i}$ has a zero expected value conditional on x.  All we care about is that the variance has a constant variance conditional on X. 
 
 \begin{equation}
-E[(u_i/\sqrt{h_i})^2] = E(u^2)/\sqrt{h_i}) = (\sigma^2h_i)/h_i = \sigma^2
+E[(u_i/\sqrt{h_i})^2] = E(u^2)/\sqrt{h_i} = (\sigma^2h_i)/h_i = \sigma^2
 \end{equation}
 
 We can then just divide our entire regression model by $\sqrt{h_i}$:
@@ -440,7 +459,7 @@ In our income example, it it would just be:
 sav_i/\sqrt{inc} = \beta_0(1/\sqrt{inc_i})+ \beta_1\sqrt{inc_i} + u_i
 \end{equation}
 
-With the above regression, our CLR assumptions are met, but the estimators are not longer going to be OLS. Instead, they are generalized least squares (GLS) and it accounts for heteroskedastcity in the errors - it is more efficient in this case than OLS. This particular estimator that orrected for heteroskedasticiy are the ***weighted least squares estimators** since each squared residual is weighted by $1/h$.  What this does is give less weight to each observation with a higher error variance (we correct for heterskedasticity by recalibrating the importance of the variance based on those we know have higher variance). 
+With the above regression, our CLR assumptions are met, but the estimators are not longer going to be OLS. Instead, they are generalized least squares (GLS) and it accounts for heteroskedastcity in the errors - it is more efficient in this case than OLS. This particular estimator that corrected for heteroskedasticiy are the **weighted least squares estimators** since each squared residual is weighted by $1/h$.  What this does is give less weight to each observation with a higher error variance (we correct for heterskedasticity by recalibrating the importance of the variance based on those we know have higher variance). 
 
 Example
 ```{r}
@@ -448,14 +467,14 @@ data(k401ksubs)
 k401ksubs <- mutate(k401ksubs, age25 = age-25,  single = if_else(k401ksubs$fsize ==1, 1,0))
 
 k401ksubs_single <-subset(k401ksubs, fsize==1)
-ols<- lm(nettfa ~ inc + I(age25^2) + male + e401k, k401ksubs_single )
+ols<- lm(nettfa ~ inc + age25 + I(age25^2) + male + e401k, k401ksubs_single )
 summary(ols)
 
 #plot(fitted(ols), residuals(ols))
  
 wts <- 1/sqrt(k401ksubs_single$inc)
  
-wls <- lm(nettfa ~ inc + I(age25^2) + male + e401k, k401ksubs_single, weights=wts)
+wls <- lm(nettfa ~ inc + age25+ I(age25^2) + male + e401k, k401ksubs_single, weights=wts)
 summary(wls)
 ```
 
@@ -463,8 +482,8 @@ In general, we might as well use robust standard errors with WLS. We may model i
 
 ```{r, results='asis'}
 library(stargazer)
-ols_r<-coeftest(ols, vcov = vcovHC(ols, type="HC1"))
-wls_r<- coeftest(wls, vcov = vcovHC(wls, type="HC1"))
+ols_r<-coeftest(ols, vcov = vcovHC(ols, type="HC0"))
+wls_r<- coeftest(wls, vcov = vcovHC(wls, type="HC0"))
 stargazer( ols, ols_r, wls,wls_r, type = "html",
            results = 'asis',message = FALSE, echo = FALSE, notes.append = FALSE, header = FALSE, single.row = TRUE,  column.labels = c("OLS", "OLS robust", "WLS", "WLS robust"))
 
@@ -473,7 +492,7 @@ stargazer( ols, ols_r, wls,wls_r, type = "html",
 
 There are other scenarios in which WLS might come in handy - when we have data limited by some nested group.  Perhaps (and this happens often) we don't have individual level data available. Instead, we have averages of data across some group or region.   
 
-For example, a firm has employees that contribute to a 401k and we only have average values of contributes, earnings and age by employer (we don't have individual level data). Imagine we have the regression model:
+For example, a firm has employees that contribute to a 401k and we only have average values of contributions, earnings and age by employer (we don't have individual level data). Imagine we have the regression model:
 
 \begin{equation}
 \bar{contrib} = \beta_0 + \beta_1\bar{earns_i}+\beta_2\bar{age_i}+\beta_3mrate + \bar{u}_i
@@ -503,7 +522,7 @@ This is **Feasible Generalized Least Squares** - where we will estimate the func
 Var(u|x) = \sigma^2exp(\sigma_0 + \sigma_1x_1 + \dots + \sigma_k x_k)v
 \end{equation}
 
-where v has a mean equal to unity, conditional on x = (x_1, +\dots + x_2). If v is independent of x, we can write:
+where v has a mean equal to unity, conditional on $x = (x_1, +\dots + x_2)$. If v is independent of x, we can write:
 
 \begin{equation}
 log(u^2) = \alpha_0 +\sigma_1x_1 + \dots + \sigma_kx_k + e
@@ -517,7 +536,7 @@ We take the log on both sides from the above equation and replace unobserved u w
 log(\hat{u}^2) on x_1 \dots x_2
 \end{equation}
 
-What we need are these fitted values to then finall estimate $h_i$ of which can then use that stored estimate to implement our WLS.
+What we need are these fitted values to then finally estimate $h_i$ of which can then use that stored estimate to implement our WLS.
 
 It's just multi-staged regressions and some plug and estimate procedures.
 
