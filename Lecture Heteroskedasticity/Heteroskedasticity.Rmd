@@ -532,9 +532,9 @@ where e has a 0 mean and is independent of x (our usual OLS assumptions)
 
 We take the log on both sides from the above equation and replace unobserved u with our OLS residuals and run the regression.
 
-\begin{equation}
-log(\hat{u}^2) on x_1 \dots x_2
-\end{equation}
+
+$log(\hat{u}^2)$ on $x_1 \dots x_2$
+
 
 What we need are these fitted values to then finally estimate $h_i$ of which can then use that stored estimate to implement our WLS.
 

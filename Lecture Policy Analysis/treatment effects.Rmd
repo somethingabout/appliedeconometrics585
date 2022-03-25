@@ -213,5 +213,25 @@ mean(train_1y_hat-train_0y_hat)
 And here, we have the same coefficient! But, no standard error. We'd have to calculate that in a different way - rather have R do the heavy lifting by estimating the demeaned interactions. 
 
 
+## Assignment Mechanism
+An important part to thinking about policy analysis is the assignment mechanism.
+
+Assignment mechanism is the procedure that determines which units are selected for treatment intake. 
+
+Examples include:
+- random assignment
+- selection on observables
+- selection on unobservables
+
+Typically, treatment effects models attain identification by restricting the assignment mechanism in some way. 
+
+Estimation of causal effects of a treatment (usually) starts with studying the assignment mechanism
+
+**Recall**
+
+- Causality is defined by potential outcomes, not by realized (observed) outcomes
+
+- Observed association is neither necessary nor sufficient for causation
+
 
 

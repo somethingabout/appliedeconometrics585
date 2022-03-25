@@ -16,7 +16,7 @@ One big problem that we often face in regression analysis is **endogeneity**. Th
 
 It is of no surprise then, that the standard IV estimator is a special case of a generalized method of moments (GMM) estimator. We're going to go into detail about IVs (and hopefully relate them back to GMM).
 
-The method requires that a certain number of moment conditions be specified for the model. These moment conditions are functions of the model parameters and the datA. The GMM method then minimizes a certain norm of the sample averages of the moment conditions, and can therefore be thought of as a special case of minimum-distance estimation.
+The method requires that a certain number of moment conditions be specified for the model. These moment conditions are functions of the model parameters and the data. The GMM method then minimizes a certain norm of the sample averages of the moment conditions, and can therefore be thought of as a special case of minimum-distance estimation.
 
 Recall that we can define moments for random variables. A collection of moments uniquely determines the distribution. 
 
@@ -43,9 +43,9 @@ Given certain assumptions, we can define moment conditions on our sample to them
 
 ## IV
 
-\textbf{instrumental variables} estimation allows a RHS variable to be correlated with the unobservables.
+**instrumental variables** estimation allows a RHS variable to be correlated with the unobservables.
 
-\textbf{IVs are outside variables, neither X nor Y, which are related with X, but not with Y except through X. We will denote them Z.}
+**IVs are outside variables, neither X nor Y, which are related with X, but not with Y except through X. We will denote them Z.**
 
 They work by identifying part of the variation in X that is exogenous, because it can be explained by the variation in Z, which is unrelated to u (the error term).
 
@@ -60,7 +60,7 @@ The two step least squares estimation provides steps that outline this relations
 
 where we think $c l a s s i z e$ is endogenous: 
 
-\begin{equation*}C o v (c l a s s i z e ,u) \neq 0.
+\begin{equation*}C o v (c l a s s i z e, u) \neq 0.
 \end{equation*}
 
  We could try to proxy for the omitted variables in $u$, perhaps using family background and socioeconomic variables. But we may not be able to sufficiently capture everything in $u$ that affects $s c o r e$. 
@@ -142,22 +142,19 @@ Bias can be large if the correlation between  $z$ and $x$ is ``small.'' This is 
  Also good news - no restrictions on the nature of $x_{i}$ or $z_{i}$. For example, each could be binary, or just one of them.
  
 
-
-
 ### How do we consistently estimate $\beta_1$?
 
 There are a few ways to do this (and we actually already covered one method above, but let's just review it again)
 
 1. 2SLS: By literally applying two-stages of OLS, with an artificial regressor in the second stage.
 
-2. IV: By a direct method of moments approach.
+2. IV: By a direct method of moments approach (shown previously).
 
 3. ILS: By an indirect least squares approach (which is less general).
 
-But, the most common approach is the Two Staged Least Squares (TSLS) way, so we'll start with this perspective. 
- 
-The second approach is a method of moments approach.
+But, the most common approach is the Two Staged Least Squares (TSLS) way.
 
+### 1. 2sls 
 1. (First stage) Estimate by OLS the new (“reduced form”) equation
 
 In expectation form
@@ -215,7 +212,8 @@ Then substituting out $\hat{\pi_1}$ using $\hat{\pi_1} = s_{XZ}/s^2_Z$:
 \hat{\beta_1}^{2SLS} = \frac{s_{YZ}}{\hat{\pi_1}s^2_Z} = \frac{s_{YZ}}{s_{XZ}}
 \end{equation}
 
-Another perspective is direct IV estimation - and this is method of moments!
+### 2. Direct IV (MM)
+Another perspective is direct IV estimation - and this is method of moments! (Ok, this is reiterated from earlier)
 
 1. From the simple regression equation in error form
 \begin{equation}
@@ -277,6 +275,36 @@ $$\beta_1 \in[\hat{\beta}^{IV}_1 \pm 1.96 \times SE(\hat{\beta}^{IV}_1)] $$
 
 In other words, same old t-tests.
 
+### 3. ILS: Indirect Least Squares
+
+Recall the first stage of 2SLS, where we estimated the so-called reduced-form equation relating $X_i$ to $Z_i$ :
+$$X_i = π_0 + π_1Z_i + v_i$$
+
+We now derive the analogous reduced-form equation for Yi :
+  where
+$$Y_i= β_0+β_1X_i+u_i $$
+$$= β_0 +β_1(π_0 +π_1Z_i +v_i)+u_i$$
+$$= (β_0 + β_1π_0) + β_1π_1Z_i + (β_1v_i + u_i)$$
+where:
+$$= γ_0+γ_1Z_i+w_i$$,
+$$γ_0 ≡ β_0+β_1π_0, γ_1 ≡ β_1π$$,
+$$w_i ≡ β_1v_i+u_i$$
+
+Here is an interpretation. A unit shock in $Z_i$, which is exogenous, results in corresponding shocks to $X_i$ of $π_1$, and to $Y_i$ of $γ_1$. But an exogenous change in $X_i$ of $π_1$ units must also lead to a change in $Y_i$ of $β_1 × π_1$ units. Hence $γ_1 = β_1π_1$
+
+Since $Z_i$ has been assumed exogenous, it must be uncorrelated with all three error terms $u_i$, $v_i$ and $w_i$. Therefore both reduced-form equations above (the first for $X_i$ and the second for $Y_i$) can be estimated by OLS. Let us write $\hat{\pi}_OLS$ for the 1 OLS estimator of $π_1$, and $\hat{\gamma}_{OLS}$ for the OLS estimator of $γ_1$. 
+
+Thanks to the exogeneity of $Z_i$, both are consistent estimators.
+
+The clue is now to realize that we can exploit the algebraic relationship between the three slope coefficients ($γ_1 = β_1π_1$) to estimate $β_1$ :
+$β_1 = \frac{γ_1}{π_1}$
+
+The Indirect Least Squares (ILS) estimator of $β_1$ is the ratio of the OLS estimators of $γ_1$ and $π_1$, thus:
+
+$$ \beta^{ILS}_1 = \frac{\gamma^{OLS}_1}{\pi^{OLS}_1}= \frac{s_{YZ}/s^2_{z}}{s_{XZ}/s^2_{z}}=\frac{s_{YZ}}{s_{XZ}}=\hat{\beta}^{IV}_1$$
+We can similarly estimate $β_0$ from
+
+$$\beta_0 = \gamma_0-\frac{\pi_0\gamma_1}{\pi_1}$$
 
 #### Weak Instruments
 
@@ -338,6 +366,7 @@ If it were the case that the instruments $Z_{1i}$ were totally irrelevant, then 
 * Rule-of-thumb: If the first-stage F-statistic is < 10, then the set of instruments is weak
 
 What to do if you have weak instruments?
+
 * Get better instruments (Ha! Easier said than done...)
 * If you have extra instruments, drop the weakest ones (dropping an irrelevant instrument
 should increase the first-stage F)
@@ -369,7 +398,7 @@ Let's see this in action.
 Here is the [description](http://fmwww.bc.edu/ec-p/data/wooldridge/labsup.des) of the dataset
 
 ```{r}
-library(dplyr)
+library(tidyverse)
 
 labsup <- read.csv('/Users/mkaltenberg/Dropbox/Pace/ECO585/R notebooks/Data/labsup.csv')
 
@@ -428,7 +457,7 @@ In some cases, we can use other information to determine whether an IV is exogen
 
 Let's use another example: estimating the Return to Schooling Using CARD.DTA 
 
-A binary indicator, $n e a r c 4_{i}$, equal to one if the man was near a four-year college in high school can be used as an IV. Would expect $x_{i} =e d u c_{i}$ and $z_{i} =n e a r c 4_{i}$ to be positively related.
+A binary indicator, $nearc4_{i}$, equal to one if the man was near a four-year college in high school can be used as an IV. Would expect $x_{i} =e d u c_{i}$ and $z_{i} =n e a r c 4_{i}$ to be positively related.
  
 ```{r}
 library(wooldridge)
@@ -437,17 +466,15 @@ data(card)
 summary(select(card, educ, nearc4))
  
 card_ols<- lm(educ ~ nearc4, card)
-
-coeftest(card_ds, vcov = vcovHC(card_ols, type="HC0"))
+summary(card_ols)
+#coeftest(card_ds, vcov = vcovHC(card_ols, type="HC0"))
 ```
-educ and nearc4 are strongly enough related: being near a 4-year college
-increases educ by almost a year. t statistic is pretty large.
+educ and nearc4 are strongly enough related: being near a 4-year college increases educ by almost a year. t statistic is pretty large.
 
 ```{r, results='asis'}
 library(stargazer)
 card_iv <-ivreg(lwage ~ educ | nearc4 , data = card)
 card_iv <- robust.se(card_iv)
-
 
 card_ols <-lm(lwage ~ educ, data = card)
 
@@ -500,10 +527,9 @@ C o v (z_{i} ,u_{i}) =0\end{gather*}[and still $E (u_{i}) =0$].
 Now, $z_{i}$ must be \textit{partially} correlated with $x_{i}$. Easiest to test with the regression 
 
 \begin{equation*}x_{i}\text{on}z_{i} ,\text{}\mathbf{r}_{i}
-\end{equation*}and reject the coefficient on $z_{i}$ is equal to zero. Called the \textbf{first-stage regression}. 
+\end{equation*}and reject the coefficient on $z_{i}$ is equal to zero. Called the **first-stage regression**. 
 
-Card argues that, while $n e a r c 4$ is not uncorrelated with ability ($I Q$), it is after controlling for region of the U.S. (where the man lived at age 16). He also includes a race indicator, living
-in an SMSA (both currently and at age 16), and living in the south (currently). Experience is included as in the usual Mincer equation.
+Card argues that, while $n e a r c 4$ is not uncorrelated with ability ($I Q$), it is after controlling for region of the U.S. (where the man lived at age 16). He also includes a race indicator, living in an SMSA (both currently and at age 16), and living in the south (currently). Experience is included as in the usual Mincer equation.
 
 ```{r}
 card_ols_full <-lm(lwage ~ educ+nearc4+ exper+ expersq+ black+ smsa+ south+ smsa66+ reg662:reg669, data = card)
@@ -526,7 +552,7 @@ stargazer(card_ols_full, card_iv_full, type = "html",
 
 Discrepancy is smaller now, but still large: 13.2% for IV, 7.5% for OLS.
 
-#Simultaneous Causality Example
+# Simultaneous Causality Example
 Simultaneous equation Model of Market Equilibrium
 
 Research question: What is the extent of price sensitivity of the demand for butter?
@@ -579,7 +605,7 @@ $$X_i = E (X_i | Z_{1i}, Z_{2i}, W_i) + vi$$
 $$= π_0 + π_1Z_{1i} + π_2Z_{2i} + π_3W_i + v_i $$
 and calculate predicted values for $X_i$ :
 $$\hat{X_i} = \hat{π_0} + \hat{π_1}Z_{1i} + \hat{π_2}Z_{2i} + \hat{π_3}W_i$$
-Because $Z_{1i}, Z_{2i}$, and $W_i$ are by assumption all uncorrelated with $u_i$, also the conditional expectation $π_0+π_1Z_{1i}+π_2Z_{2i}+π_3W_i$ is uncorrelated with $u_i$. We don’t know the true $π$’s, but the regression of $X_i$ on $Z_{1i}, Z_{2i}$, and $W_i$ satisfies Ass. 1, hence the OLS estimates $\hat{π_0}, \hat{π_1}, \hat{π_2}, \hat{π_3}$ are consistent (unbiased in large samples). The purpose of the predicted values $\hat{X_i}$ is to isolate a part of $X_i$ that is independent of %u_i%.
+Because $Z_{1i}, Z_{2i}$, and $W_i$ are by assumption all uncorrelated with $u_i$, also the conditional expectation $π_0+π_1Z_{1i}+π_2Z_{2i}+π_3W_i$ is uncorrelated with $u_i$. We don’t know the true $π$’s, but the regression of $X_i$ on $Z_{1i}, Z_{2i}$, and $W_i$ satisfies Ass. 1, hence the OLS estimates $\hat{π_0}, \hat{π_1}, \hat{π_2}, \hat{π_3}$ are consistent (unbiased in large samples). The purpose of the predicted values $\hat{X_i}$ is to isolate a part of $X_i$ that is independent of $u_i$.
 
 
 2. (Second stage) Replace $X_i$ in the equation of interest by the OLS predicted values
@@ -601,19 +627,21 @@ We will now introduce extensions for:
 
 We adapt the indexing of the coefficients accordingly:
 $$Y_i = β_0 + β_1X_{1i} + \dots + β_KX_{K}i + β_{K+1}W_{1i} +\dots +\beta_{K+L}W_{Li} + ui$$
-The fatal flaw of endogenous regressors is (again) that they are potentially correlated with the error term $u_i$. Included exogenous variables are typically called control variables if they are
-only indirectly relevant, but help to ensure that $Z_{1i},\dots ,Z_{Mi} are conditionally uncorrelated with $u_i$ (once the $W_{1i}, \dots ,W_{Li}$ are included).
+The fatal flaw of endogenous regressors is (again) that they are potentially correlated with the error term $u_i$. 
+
+Included exogenous variables are typically called control variables if they are only indirectly relevant, but help to ensure that $Z_{1i},\dots ,Z_{Mi}$ are conditionally uncorrelated with $u_i$ (once the $W_{1i}, \dots ,W_{Li}$ are included).
 
 ###  Identification
 
 Formally, a parameter is said to be identified if different parameter values imply different data distributions.
 
-In IV regression, the issue hinges practically on the number of instruments (M) and the number of endogenous regressors (K) . Intuitively, if there are fewer instruments than endogenous regressors, we won’t be able to estimate $β_1, \dots , β_K$ consistently. (Imagine, for instance, K = 1 and M = 0.)
+In IV regression, the issue hinges practically on the number of instruments (M) and the number of endogenous regressors (K). Intuitively, if there are fewer instruments than endogenous regressors, we won’t be able to estimate $\beta_1, \dots , \beta_K$ consistently. (Imagine, for instance, K = 1 and M = 0.)
 
 The coefficients $β_1, \dots , β_K$ are said to be:
-overidentified if $M > K$ (there are extra instruments available)
-just-identified if $M = K$ (there are just enough instruments)
-underidentified if $M < K$ (there are too few instruments available)
+
+- overidentified if $M > K$ (there are extra instruments available)
+- just-identified if $M = K$ (there are just enough instruments)
+- underidentified if $M < K$ (there are too few instruments available)
 
 If there are extra instruments available, you will see that you can test partly whether the instruments are valid. More precisely, you can test the supernumerary exogeneity restrictions (which are called “overidentifying restrictions”)
 
@@ -625,6 +653,7 @@ underidentified if $M + L < K + L$ (there are too few instruments available)
 
 
 1. (First stage) Estimate by OLS the new (“reduced form”) equation for each of the X’s.
+
 For $X_{1i}$ this would be
 $$ X_{1i}= π_0 + π_1Z_{1i} + \dots + π_MZ_{Mi}+π_{M+1}W_{1i} + \dots + π_{M+L}W_{Li} + v_{1i} $$
 
