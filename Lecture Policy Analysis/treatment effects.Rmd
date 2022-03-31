@@ -50,7 +50,7 @@ Where $y_i = y_i(0)$ if $x_i = 0$ and $y_i = y_i(1)$ if $x_i=1$
 
 You can also think about the Average Treatment effect on the Treated  (TOT in A\&P or sometimes seen as ATET)
 
-$$E[ Y_i(1) - Y_i(1)|w_i=1] = E[Y_i(1)|w_i=1]-E[Y_i(0)|w_i=1] $$
+$$E[ Y_i(1) - Y_i(0)|w_i=1] = E[Y_i(1)|w_i=1]-E[Y_i(0)|w_i=1] $$
 
 Which we can't observe (well components of it). This illustrated the counterfactual nature of the causal effect: the average outcome of the treated minus the average outcome of the treated *if they hadn't been treated* - this last part we can't observe and is the counterfactual. 
 
