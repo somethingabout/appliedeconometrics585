@@ -1,0 +1,85 @@
+File Manifest for ICPSR 4075
+
+United States Department of Education. National Center for Education
+Statistics. Early Childhood Longitudinal Study [United States]:
+Kindergarten Class of 1998-1999, Third Grade. ICPSR04075-v1. Ann Arbor, MI:
+Inter-university Consortium for Political and Social Research
+[distributor], 2013-08-08. http://doi.org/10.3886/ICPSR04075.v1
+
+Details on the version history can be found below the file listings.
+
+
+Study-level Documentation
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    04075-descriptioncitation.pdf       -       -         -       2018-04-25  -
+
+    04075-related_literature.txt        -       -         -       daily       -
+
+    04075-manifest.txt                  -       -         -       daily       -
+
+    04075-Documentation-instruments.pdf -       -         -       2013-08-12  5a716728dfbd41f22fcd7f62d85cfd5c
+
+    04075-User_guide.pdf                -       -         -       2013-08-12  6e30a1527cd7b742af393dc1d2aa1d1d
+
+
+DS0001 Third Grade Child Data
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    04075-0001-Codebook-volume_1.pdf    -       -         -       2013-08-12  6f8161f891c737d1a2e9177096647988
+
+    04075-0001-Codebook-volume_2.pdf    -       -         -       2013-08-12  0a9ffdba3810cbfd88c0f538e112d070
+
+    04075-0001-Data.por                 -       15,305    3225    2013-08-12  a627a0ec3b12ae368e0bbc6a4c1ee284
+
+    04075-0001-Data.txt                 5798    30,610    3225    2013-08-12  f35706245b576a90995be50fb29cdd56
+
+    04075-0001-Data.xpt                 -       15,305    3225    2013-08-12  a3eac2c0a4063fdc6b609eac0c261698
+
+    04075-0001-Questionnaire.pdf        -       -         -       2013-08-12  c4a43acb60dc9edd917e38288c3b5b9a
+
+    04075-0001-Setup.dct                -       -         -       2013-08-12  5754f8f347d073fb57483eb2cc754a66
+
+    04075-0001-Setup.do                 -       -         -       2013-08-12  74410609ab1e99f66fd1f3c9f39c66b4
+
+    04075-0001-Setup.sas                -       -         -       2013-08-12  3f639c11f741454072c2ab5288c1f8e8
+
+    04075-0001-Setup.sps                -       -         -       2013-08-12  61605efc3d9ceeef17a4405a4b07aa2e
+
+
+DS0002 Round 5 Base Weights and Adjustment Factors
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    04075-0002-Codebook.pdf             -       -         -       2013-08-08  3d3738c9eced50c8f08466a5ad791713
+
+    04075-0002-Data.txt                 1159    21,357    113     2013-08-08  0f9268fcf91707f6c7528b43a5cd6eed
+
+    04075-0002-Setup.sas                -       -         -       2013-08-08  04dc593352e77457a57f4f4a8f68b3e2
+
+    04075-0002-Setup.sps                -       -         -       2013-08-08  eaeff15cacdf9b767427f0dc226f5b78
+
+
+DS0003 Cross-Round Weight Status
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    04075-0003-Codebook.pdf             -       -         -       2013-08-08  c85a7258481ac9cb8b85b726209fb457
+
+    04075-0003-Data.txt                 37      22,978    16      2013-08-08  9197a0e7062d2148462dd296e0a0165a
+
+    04075-0003-Setup.sas                -       -         -       2013-08-08  32f5485d50680b81b42fd099bd1baaf8
+
+    04075-0003-Setup.sps                -       -         -       2013-08-08  af56852f7208dd21013679a5a952c0ec
+
+
+Version History
+
+2013-08-12 Study-level Files section has been created.  2013-08-08 2013-08-
+06 The ECLS-K instrument matrix has been created.

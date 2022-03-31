@@ -286,8 +286,8 @@ $$Y_i= β_0+β_1X_i+u_i $$
 $$= β_0 +β_1(π_0 +π_1Z_i +v_i)+u_i$$
 $$= (β_0 + β_1π_0) + β_1π_1Z_i + (β_1v_i + u_i)$$
 where:
-$$= γ_0+γ_1Z_i+w_i$$,
-$$γ_0 ≡ β_0+β_1π_0, γ_1 ≡ β_1π$$,
+$$= γ_0+γ_1Z_i+w_i$$
+$$γ_0 ≡ β_0+β_1π_0, γ_1 ≡ β_1π$$
 $$w_i ≡ β_1v_i+u_i$$
 
 Here is an interpretation. A unit shock in $Z_i$, which is exogenous, results in corresponding shocks to $X_i$ of $π_1$, and to $Y_i$ of $γ_1$. But an exogenous change in $X_i$ of $π_1$ units must also lead to a change in $Y_i$ of $β_1 × π_1$ units. Hence $γ_1 = β_1π_1$

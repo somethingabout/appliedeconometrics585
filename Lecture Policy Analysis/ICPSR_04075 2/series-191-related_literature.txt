@@ -1,0 +1,29 @@
+Bibliography
+Early Childhood Longitudinal Study (ECLS) Series
+
+This bibliography includes published and unpublished works that are
+related to ICPSR series 191. It includes works that are based on
+primary or secondary analysis of the data, or which describe or critique
+those data or the collection methodology. This list represents all items
+known to ICPSR as of 2019-05-21.
+
+If you publish a work or know of other works that are based on these data,
+please send the complete citation and name of the ICPSR series used to:
+icpsr-biblio-notify@umich.edu 
+
+
+1. Davis-Kean, Pamela; Jager, Justin, "The use of large-scale data sets for
+the study of developmental science." In Laursen, Brett; Little Todd D.;
+Card, Noel A., Handbook of Developmental Research Methods. 148 - 162, New
+York, NY: Guilford Press,2012.
+
+2. Minh, Anita; Muhajarine, Nazeem; Janus, Magdalena; Brownell, Marni;
+Guhn, Martin, "A review of neighborhood effects and early child
+development: How, where, and for whom, do neighborhoods matter?." Health
+and Place. Jul 2017, 46, 155 - 174. DOI: 10.1016/j.healthplace.2017.04.012
+Abstract: https://www.ncbi.nlm.nih.gov/pubmed/28528276
+
+3. Schneider, Barbara, "Building a Scientific Community: The Need for
+Replication." Teachers College Record. Jul 2004, 106, (7), 1471 - 1483.
+DOI: 10.1111/j.1467-9620.2004.00386.x
+Abstract: https://www.ncbi.nlm.nih.gov/pubmed/28528276
