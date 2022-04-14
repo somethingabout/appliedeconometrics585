@@ -50,7 +50,7 @@ Where $y_i = y_i(0)$ if $x_i = 0$ and $y_i = y_i(1)$ if $x_i=1$
 
 You can also think about the Average Treatment effect on the Treated  (TOT in A\&P or sometimes seen as ATET)
 
-$$E[ Y_i(1) - Y_i(0)|w_i=1] = E[Y_i(1)|w_i=1]-E[Y_i(0)|w_i=1] $$
+$$E[ Y_i(1) - Y_i(0)|x_i=1] = E[Y_i(1)|x_i=1]-E[Y_i(0)|x_i=1] $$
 
 Which we can't observe (well components of it). This illustrated the counterfactual nature of the causal effect: the average outcome of the treated minus the average outcome of the treated *if they hadn't been treated* - this last part we can't observe and is the counterfactual. 
 
@@ -78,10 +78,11 @@ The above equation is the result of a RCT (randomized control trial) - IF there 
 
 $\beta_1$ is just the treatment or causal effect.  This is often called the difference in means estimator and is the unbiased treatment effect $\tau$. If $x_i$ is independent of $u_i(0)$ then we know $E(u_i(0)|x_i] = 0$). This is the same as saying $x_i$ is independent of $y_i(0)$. This assumption is guaranteed **only** under *random assignment*.   This means that the treatment must be assigned randomly.
 
+The simple difference in means estimator for $\hat{y}_1 and \hat{y}_0n$ is unbiased for $\tau$
 
 Suppose we relax the assumption of constant treatment effect. We can write the individual treatment effect as
 $$te_i = y_i(1)-y_i(0)=\tau_{ATE}+[u_i(1)- u_i(0)]$$
-recall where $y_i(1) = \alpha_1+u_i(1)$ and $\tau_{ATE} = \alpha_1 = \alpha_0$ \
+recall where $y_i(1) = \alpha_1+u_i(1)$ and $\tau_{ATE} = \alpha_1 -\alpha_0$ \
 
 $\tau_{ATE}$ is the average across the entire population and $u_i(1) - u_i(0)$ is the deviation from the population average for unit i.
 
@@ -92,9 +93,8 @@ $$y_i = \alpha_0 + \tau_{ATE}x_i + u_i(0)+[u_i(1)-u_i(0)]x_i = \alpha_0 + \tau_{
 
 and the error term is $u_i(0)+[u_i(1)-u_i(0)]$
 
-random assignment assumption is now that $x_i$ is independent of $[u_i(0),u_i(1)]$, even though $u_i$ depends on $x_i$
 
-$$E(u_i|x_i) = E[u_i(0)|x_i] + E[u_i(1)]-u_i(0)|x_i]x_i$$
+$$E(u_i|x_i) = E[u_i(0)|x_i] + E[u_i(1)-u_i(0)|x_i]x_i$$
 *note that the error term is not independent of $x_i$, but this isn't a problem for showing our unbiased estimator.  This makes sense because the variance should change depending if you were treated or untreated. Again, these results only hold because of random assignment.
 
 
@@ -110,6 +110,7 @@ This is called **conditional independence** where the variables in x are in the 
 
 Let's see this difference in an example of job training - you'll see this example at various points in the course.
 ```{r}
+library(wooldridge)
 data("jtrain98")
 
 simplediff <- lm(earn98 ~ train, data = jtrain98)
@@ -159,7 +160,7 @@ $$y (0) =\psi _{0} + (x -\eta)\gamma _{0}  +u (0)$$
 
 $$y(1) =\psi _{1} + (x -\eta)\gamma _{1}  +u (1)$$
 
-$$ \eta _{j} =E (x_{j})\text{,}\psi _{0} =E[y(0)]\text{, and}\psi _{1} =E[y(1)]$$
+$$ \eta _{j} =E (x_{j})\text{,}\psi _{0} =E[y(0)]\text{, and } \psi _{1} =E[y(1)]$$
 
 We center the covariates $(x_{j})$ around their means so that the intercepts $\psi _{0}$ and $\psi _{1}$ are the expected values of the two potential outcomes \
 
@@ -286,22 +287,26 @@ experiments. Always go back to this - if I were to design an experiment for my r
 It is important to distinguish between:
 
 **Covariates**: Pre-treatment variables, potential confounders
-Definition:
-Variable X is predetermined with respect to the treatment D (also called “pretreatment”) if for each individual i , $X_{0i} = X_{1i}$ , ie. the value of $X_i$ does not depend on the value of $D_i$ . Such characteristics are called covariates.
 
-**Does not imply that X and D are independent**
+Definition:
+
+Variable X is predetermined with respect to the treatment D (also called “pre-treatment”) if for each individual i , $X_{0i} = X_{1i}$ , ie. the value of $X_i$ does not depend on the value of $w_i$. Such characteristics are called covariates.
+
+**Does not imply that X and $W_i$ are independent**
 
 Predetermined variables are often time invariant (sex, race, etc.), but time invariance is not necessary
 
 **Outcomes**: Variables potentially affected by the treatment
+
 Definition:
-Those variables, Y , that are (possibly) not predetermined are called outcomes (for some individual i , $Y_{0i} ̸= Y_{1i} ) In general, one **should not condition on outcomes**, because this may induce bias.
 
-Randomized Experiment: Well-defined treatment, clear distinction between covariates and outcomes
+Those variables, Y , that are (possibly) not predetermined are called outcomes (for some individual i , $Y_{0i} ̸= Y_{1i}$) In general, one **should not condition on outcomes**, because this may induce bias.
 
-Better Observational Study: Well-defined treatment, clear distinction between covariates and outcomes
+    *Randomized Experiment: Well-defined treatment, clear distinction between covariates and outcomes
 
-Poorer Observational Study: Hard to say when treatment began or what the treatment really is. Distinction between covariates and outcomes is blurred. No baseline survey.
+    *Better Observational Study: Well-defined treatment, clear distinction between covariates and outcomes
+
+    *Poorer Observational Study: Hard to say when treatment began or what the treatment really is. Distinction between covariates and outcomes is blurred. No baseline survey.
 
 **Before** running a regression, spend time thinking about:
 
@@ -381,14 +386,19 @@ However, there is an important assumption applied in *both* regression and match
 Selection on observables is that $Y_i(0)$ (and hence $Y_i(1)$, given the constant-effects assumption) is mean-independent of $w_i$ conditional on $X_i$. 
 
 Written another way:
-$$(Y_1, Y_0) \bot w_i | X_i$$ (selection on observables/unconfoundness (as discussed earlier))
+$$(Y_1, Y_0) \bot w_i | X_i$$ (selection on observables/unconfoundedness (as discussed earlier))
+
+$\bot$ means orthagonal (linear algebra term) - it is basically that $(Y_1, Y_0)$ is independent of $w_i$ conditional on $X_i$
 
 Common support is that you have enough "similar" treated observations and control observations. In practice, to do this sufficiently you need a relatively large number of observations.
+
 Formally this is:
+
 $$0 < Pr(w_i = 1|X ) < 1$$ with probability one (common support or overlap condition)
+That there is a probability between zero and 1 that there is $w_i = 1$ conditional on X.
 
 We can see the common support condition applied in ATE:
-$$\tau = E(Y_1 - Y_0) = \int E[Y_1-Y_i|X]dP(X) $$
+$$\tau = E(Y_1 - Y_0) = \int E[Y_1-Y_0|X]dP(X) $$
 $$= \int (E[Y|X, w=1]- E[Y|X, w=0])dP(X)$$
 We can see the same above visually:
 ![Common Support](cs1_1.png)
@@ -399,7 +409,7 @@ If you don't have enough common support, it'll look something like this:
 
 
 The common support condition applied in **ATET**:
-$$\tau_{ATET} = E(Y_1 - Y_0|w_i=1) = \int E[Y_1-Y_i|X]dP(X) $$
+$$\tau_{ATET} = E(Y_1 - Y_0|w_i=1) = \int E[Y_1-Y_0|X]dP(X) $$
 $$= \int (E[Y|X, w=1]- E[Y|X, w=0])dP(X|w_i = 1)$$
 
 We use matching to construct a statistical comparison group, which also allows for flexibility in linearity.
@@ -413,8 +423,8 @@ From a group of non-participants, we select individuals (or other units) that ar
 #### Subclassifciation estimator
 
 Let's say X takes on k different cells ${X^1, \dots ,X^k}$, then the estimators you'd get are:
-$$\tau  = \sum^k_{i=1}(\bar{Y}^k_1-\bar{Y}^k_0 \dot (\frac{N_k}{N})$$
-Where $N_k$ is the number of observations, $N_k_1$ is the number of treated observations
+$$\tau  = \sum^k_{i=1}(\bar{Y}^k_1-\bar{Y}^k_0) \times (\frac{N_k}{N})$$
+Where $N_k$ is the number of observations
 $\bar{Y}^k_1$ is the mean outcome for the treated in cell k
 $\bar{Y}^k_0$ is the mean outcome for the untreated in cell k
 
@@ -596,7 +606,7 @@ Since students who attend Catholic school on average are different from students
 
 We'll estimate:
 
-$$score = \beta_0 + \beta_1 Catholic + \beta_2Race + \beta_3momage + \beta_4income \beta_5move + \beta_6momeduc$$
+$$score = \beta_0 + \beta_1 Catholic + \beta_2Race + \beta_3momage + \beta_4income + \beta_5move + \beta_6momeduc$$
 Even with these controls, we're concerned about selection bias of catholic attendees. 
 
 Quick codebook:
@@ -645,6 +655,7 @@ with(ecls, t.test(c5r2mtsc_std ~ catholic))
 Let's see difference in means for our different covariates
 ```{r}
 ecls_cov <- c('race_white', 'p5hmage', 'w3income', 'p5numpla', 'w3momed_hsb')
+
 ecls %>%
   group_by(catholic) %>%
   select(one_of(ecls_cov)) %>%
@@ -658,6 +669,7 @@ with(ecls, t.test(p5hmage ~ catholic))
 with(ecls, t.test(w3income ~ catholic)) 
 with(ecls, t.test(p5numpla ~ catholic)) 
 with(ecls, t.test(w3momed_hsb ~ catholic)) 
+
 ```
 
 Advanced treatment that does the same as above but in a for loop
@@ -677,7 +689,21 @@ Run the logit/probit model!
 
 This part is important to think about thoroughly before you rush off and hit run. The biggest mistake I see students make is that they "just want the results" and will run anything before thinking thoroughly about the model. This is not the way to do research.
 
-You need to think about the assignment mechanism - what impacts selection into going to catholic school. Let's think about this now and make suggestions on what coudld be included.
+You need to think about the assignment mechanism - what impacts selection into going to catholic school. Let's think about this now and make suggestions on what could be included.
+- whether they are catholic (religion)
+- income
+- quality of schools in school zone
+      - property taxes?
+      - charter/other private
+- reputation (homophily)
+- other (older) siblings/cousins in catholic school
+- Parent is alum of catholic school
+- crime rate in area
+- political ideology 
+- access to catholic school
+- MS/HS prospects (feeder schools)  (K-12)
+- access to sports amenities
+- consideration all girls/all boys schools
 
 
 Here, we're going to run the logit model to *predict* the liklihood of being in a catholic school or not.  glm is the function for logit (note binomial denotes it to be logit model)
@@ -685,7 +711,7 @@ Here, we're going to run the logit model to *predict* the liklihood of being in 
 ```{r}
 ecls <- ecls %>% mutate(w3income_1k = w3income / 1000)
 #we'll divide income by 1000 to have "lower numbers", just remember this in the interpretation. It helps deal with potential heteroskedasticity issues.
-m_ps <- glm(catholic ~ race_white + w3income_1k + p5hmage + p5numpla + w3momed_hsb,
+m_ps <- glm(catholic ~ race_white + log(w3income_1k) +   + p5hmage + p5numpla + w3momed_hsb,
             family = binomial(), data = ecls)
 summary(m_ps)
 ```
@@ -714,8 +740,7 @@ prs_df %>%
 ```
 
 
-What we got to do is find pairs of observations that have similar propensity scores, but only differ in their treatment status. In other
-words, match pairs. We'll use the funciton MatchIt to do this.
+What we got to do is find pairs of observations that have similar propensity scores, but only differ in their treatment status. In other words, match pairs. We'll use the function MatchIt to do this.
 
 In this case, we are using nearest neighbor to match it (see method in the function)
 ```{r}
@@ -723,8 +748,7 @@ ecls_nomiss <- ecls %>%  # MatchIt does not allow missing values
   select(c5r2mtsc_std, catholic, one_of(ecls_cov)) %>%
   na.omit()
 
-mod_match <- matchit(catholic ~ race_white + w3income + p5hmage + p5numpla + w3momed_hsb,
-                     method = "nearest", data = ecls_nomiss)
+mod_match <- matchit(catholic ~ race_white + log(w3income) + p5hmage + p5numpla + w3momed_hsb, method = "nearest", data = ecls_nomiss)
 ```
 
 

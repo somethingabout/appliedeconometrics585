@@ -154,19 +154,22 @@ summary(lm(crmrte ~ d87 + unem, crime2))
 
 First-Difference regression
 ```{r}
-library(dplyr)
+library(tidyverse)
 library(AER)
 
 #crime2 =  crime2 %>% group_by(d87) %>% mutate(crmrte_diff = crmrte - lag(crmrte,default =0))
 
 #crime2 = crime2 %>% group_by(d87) %>% mutate(cunem_diff = cunem - lag(cunem, default =0)) 
 
+# Here, we are calculating the difference in crimerate by "hand"
 crmrte_diff = crime2$crmrte[crime2$d87==0] - crime2$crmrte[crime2$d87 == 1]
-
+# Here, we are calculating the difference in unemployment rate by "hand"
 cunem_diff = crime2$unem[crime2$d87==0] - crime2$unem[crime2$d87 == 1]
 
+#let's run the simplre regression of the differences between the two time periods on unem on crimerate
 first_diff <-lm(crmrte_diff ~ cunem_diff)
 summary(first_diff)
+
 
 ```
 * The intercept means that, if the unemployment rate did not change, the crime rate would be predicted to increase by about 15 crimes per 1,000 people.
@@ -196,6 +199,7 @@ Let's see POLS
 
 ```{r}
 data("jtrain")
+#I'm subselecting so that we only look at data that is before 1989
 jtrain_88 <- jtrain[jtrain$year < 1989 ,]
 
 pols_lscrap <- lm(lscrap ~grant +  d88, jtrain_88)
@@ -210,7 +214,7 @@ library(plm)
 
 lm(lscrap ~d88+grant, jtrain_88)
 
-#There is a slight issue in R that it doesn't do the correct degress of freedom adjustment for the number of groups. So, we can do this ourselves.
+#There is a slight issue in R that it doesn't do the correct degrees of freedom adjustment for the number of groups. So, we can do this ourselves.
 # compute df-adjustment
 G <- length(unique(jtrain_88$fcode))
 N <- length(jtrain_88$fcode)
@@ -241,7 +245,7 @@ coeftest(first_diff_grant, vcov = vcovHC, type = "HC1")
 ```
 Not a lot has changed.
 
-In applications where $x_{i t}$ is a dummy variable with no assignment in the first period, the FD estimator has a simple interpretation. It is the same as applying OLS to "
+In applications where $x_{i t}$ is a dummy variable with no assignment in the first period, the FD estimator has a simple interpretation. It is the same as applying OLS.
 
 \begin{equation*} \Delta y_{i} =\delta _{0} +\beta _{1} x_{i 2} + \Delta u_{i}
 \end{equation*}
@@ -253,21 +257,13 @@ group:
 \begin{equation*}\hat{\beta }_{F D} =\overline{ \Delta y}_{t r e a t} -\overline{ \Delta y}_{c o n t r o l}\text{.}
 \end{equation*}
 
-At this point, you may have the realization that a Difference-in-Difference model is the same thing as a simple first difference model where there are only two time periods. And that's what the above equation is - the differences are within the same unit. 
+This is also known as Difference-in-Difference model and it is the same thing as a simple first difference model where there are only two time periods with an interaction. And that's what the above equation is - the differences are within the same unit. 
 
 The FD estimator is useful when treatment assignment depends on $a_{i}$. If we think assignment in period two (still taking $x_{i 1} =0$ for all $i$) is determined largely by $y_{i 1}$ (first-period response), it is common to add $y_{i 1}$ as a regressor: 
 
 \begin{equation*} \Delta y_{i} =\delta _{0} +\beta _{1} x_{i 2} +\rho  y_{i 1} +e_{i 1} \end{equation*}and use OLS. (This is the same as regressing $y_{i 2}$ on $x_{i 2}$ and $y_{i 1}$.)
 
 Adding $y_{i 1}$ seems more general, but it can actually cause inconsistency if $x_{i 2}$ is determined by $a_{i}$, not $y_{i 1}$. The argument is somewhat subtle. 
-
-The treatment effects literature is more about adding observed controls to make *assignment exogenous* and prefers to add $y_{i1}$. The unobserved effects approach is used more by economists but the treatment effects approach is gaining. 
-
-We went over Diff-Diff models last week. The literature in the field is very big. 
-Somethings that we won't have time to discuss, but are important to note are:
-
-* ATE vs ATT  [Newey, W. 2007 explainer](https://ocw.mit.edu/courses/economics/14-386-new-econometric-methods-spring-2007/readings/treatment_effect.pdf)
-*  time varying treatments by [Callaway and Sant'Anna (2020)](https://arxiv.org/abs/1803.09015). They have an R package called did `install.packages(did)` 
 
 
 #### More Details: The Strict Exogeneity Assumption
@@ -302,7 +298,7 @@ Note that it is not enough to just assume
 \begin{equation}C o v (x_{i t} ,u_{i t}) =0\text{,}t =1 ,2\text{,}
 \end{equation}which is known as *contemporaneous exogeneity*.
 
-The stronger assumption 
+The `stronger assumption 
 
 \begin{equation}C o v (x_{i s} ,u_{i t}) =0\text{,}s ,t =1 ,2.
 \end{equation} 
@@ -397,7 +393,315 @@ In cases where a policy variable is of interest, it is important **not** to incl
 For example, in studying the effects of class size (say, small or large) on math performance, one would not include a science test score among the explanatory variables (unless it is from a previous year).
 
 
+### Diff-in-Diff Models
+
+Ok, so first differencing with an interaction is just diff-diff. But, now we are going to apply all that "treatment" language to frame our understanding of difference - in - difference models.
+
+We went into the details of ATE vs. ATT last class. A nice explainer can be found by [Newey, W. 2007 explainer](https://ocw.mit.edu/courses/economics/14-386-new-econometric-methods-spring-2007/readings/treatment_effect.pdf)
+
+
+Recall that we care about the assignment mechanism. The treatment effects literature is more about adding observed controls to make *assignment exogenous* and prefers to add $y_{i1}$. The unobserved effects approach is used more by economists but the treatment effects approach is gaining. 
+
+It is not always possible (nor necessary) to ``equalize'' the participants and non-participants (aka PSM). Using a **difference-in-differences** approach, we can account for differences between participants and non-participants.
+
+**Advantages**
+
+- Control for **unobserved heterogeneity** (just like in first differencing!)
+Selection bias is often caused by unobserved characteristics - whereas in PSM, we can only control for *observed* characteristics
+
+RECALL that **only time-invariant unobserved heterogeneity** can be accounted for. Anything that is time-varying and unobserved will cause endogeneity.
+
+- Relaxes the assumption of conditional exogeneity or, differently said, selection on observed characteristics
+
+**Disadvantages**
+
+- The assumption of a time-invariant selection can often be implausible
+    - Behavior and choices of treated units might change over time
+    - Units respond dynamically to the policy intervention
+    - Panel data is less often available as compared to a cross-section (without panel, PSM or IV is your best bet)
+
+
+Let's go to the A&P Mastering Metrics examples.
+
+##### Example 1
+
+The RQ: What’s the impact of the monetary policy of providing liquidity/credit to banks after the great depression?
+
+Some discussion among economists on whether it is better to provide liquidity to banks so that they prevent bank closures
+ OR
+to restrict or keep credit the same to avert a moral hazard (with the aim that the most fit banks survive)
+
+Re-living that debate in 2020/2021  (moved onto inflation debate in 2022)
+
+- Why did they choose Mississipi?
+
+![fed reserve](fedreserve.png)
+
+|    | District 8 St. Louis (control) | District 6 Atlanta (treatment)   |  Difference |
+|-----------------------------|--------------------|---------------------|-------------|
+| Policy|Restrict lending     | Increase lending   |                     |             |
+| July 1, 1931 (after crisis) | 132                | 121                 | 11          |
+| July 1, 1930 (before crisis)| 165                | 135                 | 20          |
+| Difference                  | -33                | 14                  | 19          |
+
+Hence - Difference-in-Difference
+
+Compare N banks open after Policy in both districts: 
+$$\delta = (Y_{6, 1931}-Y_{6, 1930})-(Y_{8, 1931}-Y_{8, 1930})$$ (ie columns)
+                                                     $$\delta  = -33 - 14$$
+Compare Change in N banks between the 2 districts: 
+$$\delta = (Y_{6, 1931}-Y_{8, 1930})-(Y_{6, 1931}-Y_{8, 1930}) $$ (ie rows)
+                                                    $$\delta  = 11 - 30$$
+
+* Comparing changes instead of levels adjusts for the fact that district 8 had more banks open in the 6th district
+
+
+Counterfactual: What would have happened without the policy?
+
+![counterfactual](MMfig51.jpg)
+
+- We use information about the 8th district (control group) to inform what would have happened in the 6th district.
+
+- We assume that the trend in the 8th district is what we should have seen in the 6th district.
+
+We can compare these as long as we meet the **common trends assumption**.
+
+![common trends](MMfig52.jpg)
+
+- This assumption is why we must check for **pre-treatment trends** prior to when the policy was applied.
+- The trends can verify if we can make the common trends assumption in our model.
+      - You want to ensure that the difference between the two points is relatively similar in your pre-treatment trend.
+      - It’s fine if they both increase or decrease, but the pre-treatment years have to move together.
+      - Ideally, you would want to collect around 5 years of data prior to the time your treatment went into effect
+
+![counterfactual trends](MMfig53.jpg)
+
+- We take information about the pre-treatment trends and create a counterfactual of what would have happened should the same trends would have continued.
+
+ - Essentially, you keep the distance between the two points constant over the future years.
+
+- While the districts have differences in the total number of banks that they manage, the trend of those differences are assumed to be the same in the counterfactual
+
+
+The regression:
+$$Y_{dt} =\beta_0 + \beta_1 Treat_{d} + \beta_2Post_t +\beta_{DD}(Treat_d*Post_t)+u_{it}$$
+Treat is a dummy variable on whether the district is the treatment or control
+
+Post is a dummy  for the periods when the treatment occurred
+
+The interaction of these dummy variables is the causal effect estimate
+	- What does this binary interaction term mean in the monetary policy example?
+	- What sign would you expect the interaction to have in this example?
+
+The interaction essentially estimate the difference between the counterfactual and what actually happened. This is the policy effect of providing credit liquidity to banks.
+
+Ok, so how is this first differencing?  Because we are looking at two time periods and seeing if the treatment (some policy change) has impacted 
+
+Recall:
+$$\hat{\beta }_{F D} =\overline{ \Delta y}_{t r e a t} -\overline{ \Delta y}_{c o n t r o l} $$
+Which is also (in this case):
+Compare N banks open after Policy in both districts: $\delta = (Y_{6, 1931}-Y_{6, 1930})-(Y_{8, 1931}-Y_{8, 1930})$ (ie columns)
+
+
+![table](MMtbl51.jpg)
+Similar Diff-in-Diff quick tables suggest some evidence that more firms were active after in the 6th district. Therefore, there is some evidence (though not conclusive) that providing liquidity in the market allowed banks to keep businesses afloat.
+
+Let's run a regression with this data to get something a bit more conclusive.
+
+
+```{r}
+banks <-read.csv('banks_clean.csv')
+
+bank_reg <- lm( lbib ~ treat + postd + treat*postd, data = banks)
+summary(bank_reg)
+
+```
+It really is just that easy!
+
+But, well, what about this parallel trends, you say?
+
+```{r}
+library(tidyverse)
+
+ggplot(banks, aes(x = year)) +
+  geom_line(aes(x= year, y = bib8, colour = "eigth districht")) + 
+  geom_line(aes(x= year, y = bib6, colour = "sixth district")) +
+    geom_vline(xintercept = 1930) +
+    theme_minimal()
+
+```
+
+
+Ok, let's take this simple model and spice it up with some changing policies over time and space! 
+
+#### Example 2
+
+
+![state drinking age](drinkingage.png) 
+In this paper, they use the state and time variation of changing minimum age requirement laws to their advantage.
+
+The simplest comparison is Alabama (Age 19 in 1975) vs. Arkansas (Remained Age 21):
+
+$$Y_{st} = \beta_1Treat_s + \beta_2Post_t +\beta_{DD}(Treat_s * post_t) + u_{st}$$
+
+Where the treated group is Alabama and we compare time periods before and after 1975
+
+However, there are many experiments that occurred beyond these 2 states
+
+What to do?
+
+**Time Fixed Effects**
+
+- Create multiple time dummies! (Instead of just one post dummy)
+- Timing of the changed age requirements varied across states
+
+The idea is to control for changing trends over time. In this case, death rates could be continually decreasing over time, but we don’t want to capture the overall death rate decrease - we want to isolate changes related to death rates caused by policy changes.
+
+Remember these are a set of dummies and one dummy must be left out to prevent perfect multicollinearity
+
+**State Fixed Effects ** 
+
+- Create multiple state dummies! 
+- There are many states which changed laws (not just AR vs AL)
+
+This allows for each state to have differing death rates. Some states may have varying death rates unrelated to changes in the MLDA laws. 
+
+Remember these are a set of dummies and one dummy must be left out to prevent perfect multicollinearity
+
+
+$$Y{st}= \beta_0 + \beta_{DD}Legal_{st}+ \sum^s_{k=1}\beta_kState_{ks}+\sum^j_{j=1}\beta_jYear_{jt}+u_{st}$$
+
+The summations allow us to keep track of the dummy variables
+
+We have a group of dummy variables for states and another group of dummy variables for year
+
+It’ll be a matrix of 1s and 0s – switching on 1 when the dummy variable is relevant for the data point.
+
+State fixed effects control for differences between states (more fatal car accidents may occur in Texas compared to NJ because in TX there are more rural high speed roads)
+
+Time fixed effects control for differences that are common across states, but move together over time. For example, the number of fatal car accidents could decrease over time due to improvement in airbags or seatbelt technology. This effects all states, but changes over time.
+
+“Fixed Effects” typically refers to a set of dummies that you are applying – the prefix of time or state refers to what aspect you are ‘holding constant’
+
+You can interpret the dummy variable individually, but remember, it is always in reference to the dummy you left out.
+
+**Rethinking Treatment Groups**
+
+Previously, we thought of treatment vs. control groups of a policy that occurred in a location or not (a binary variable)
+
+However, the policy changes varied in the age (some required 18, others 19 and other 21+) and over time
+
+This makes assignment a treatment more difficult than a binary variable.
+
+- To deal with the problem, they created a variable called Legal that would be the proportion of 18-20 years allowed to drink in that state and year
+- This new variable allows us to capture differences over state and time, but also identifies which states are our treatments vs. control groups (rather than an interaction between year and treatment)
+
+An example:
+
+|State | Year |Age | Legal |
+|------|------|----|-------|
+| KS   |1975  |18  |1      |
+| AL   |1975  |19  |.6     |
+| PA   |1975  |20  |.3     |
+| CA   |1975  |21  |0      |
+
+
+**What about the Parallel Trends Assumption?**
+We can “relax” this assumption slightly.
+
+We allow for some nonparallel trend to occur between states without a treatment effect, but we need to include state specific trends to do so.
+
+In the model this is captured by $\theta_k$ - state specific trends - which is the interaction between the state and year fixed effects:
+
+$$Y{st}= \beta_0 + \beta_{DD}Legal_{st}+ \sum^s_{k=1}\beta_kState_{ks}+\sum^j_{j=1}\beta_jYear_{jt}+\sum^s_{k=1}\theta_k(State_{ks}*Year_{jk})+u_{st}$$
+![parallel](MMfig54.jpg)
+![not parallel no effect](MMfig55.jpg)
+
+![not parallel](MMfig56.jpg)
+* Using the state parameter allows us to capture 5.6; allowing for non-parallel trends, but where there is a jump after policy is applied
+
+
+![alcohol table](MMtbl52.jpg)
+
+Important side note: In recent years (2018,2019,2020), there have been advances on time varying treatment effects. 
+
+- Goodman-Bacon (2019) came out with one way to deal with weighting and bias effect in a TWFE model with time varying treatments. 
+- Callaway and Sant'Anna (2018) introduce a staggered DiD method (two step estimation technique) - they have an updated version to deal with time varying treatment effects [Callaway and Sant'Anna (2020)](https://arxiv.org/abs/1803.09015) *and* an R package called did `install.packages(did)`.
+- Imai and Kim (2019) suggest a solution where units can switch in and out of different periods of treatment. 
+- Our favorite econometrician, [Wooldridge (2021)](https://economics.princeton.edu/wp-content/uploads/2021/08/two_way_mundlak-Wooldridge.pdf) uses a Two way Mundlak device that allows for heterogeneity in treatment effects across treatment intensity, calendar time, and covariates and can relax the common trends assumption. 
+
+A quick summary of some of theses technique can be found [here](https://andrewcbaker.netlify.app/2019/09/25/difference-in-differences-methodology/). A thorough review can be found [here](https://jonathandroth.github.io/assets/files/DiD_Review_Paper.pdf).
+
+Back to A&P:
+
+The final comparison check in table 5.2 is the application of weighted least squares. Yay!!!!  A diff-in-diff model that is estimated with Weighted Least Squares - the culmination of so many things we learned in this class!
+
+Here, they include weights and run a weighted least squares regression.They will weight each term of the residual sum of squares by the population.
+
+Thus the causal effect of Texas will be weighted more than the causal effects of North Dakota.
+
+Ideally, you don’t want the weighted regression to change your main results by much, 
+
+Given this change, the standard errors will also change – they often become more precise (which we want), but only under some conditions.
+
+In the final regression in the table (regression 4), we can see that on average, there are 9.6 more deaths in states that have lower age requirements and 6.46 of those are related to car accidents
+
+
+Let's use their data to see the full model 
+```{r, results='asis'}
+library("stargazer", "sandwich")
+#Without trends
+deaths <- read.csv("drivingdeaths.csv")
+
+deaths_all <- deaths[deaths$dtype =='all',]
+deaths_all_83 <- deaths_all[deaths_all$year <=1983,]
+deaths_all_83 <- deaths_all_83[deaths_all_83$agegr == '18-20 yrs',]
+
+
+w = deaths_all_83$pop
+diff_mult <- lm(mrate ~ legal+factor(state)+factor(year), data = deaths_all_83)
+diff_mult_cov<- lm(mrate ~ legal+beertaxa+factor(state)+factor(year), data = deaths_all_83)
+diff_mult_wls <- lm(mrate ~ legal+factor(state)+factor(year), data = deaths_all_83, weights = w)
+
+rob_se <- list(sqrt(diag(vcovHC(diff_mult, type = "HC1"))), sqrt(diag(vcovHC(diff_mult_cov, type = "HC1"))),sqrt(diag(vcovHC(diff_mult_wls, type = "HC1"))))
+
+stargazer(diff_mult, diff_mult_cov,diff_mult_wls,
+          digits = 3,
+          header = FALSE,
+          type = "html", 
+          se = rob_se,
+          title = "Diff-Diff MLDA law regression",
+          model.numbers = FALSE,
+          omit = c("year", "state"),
+          column.labels = c("(1)"))
+```
+```{r}
+#include trends
+#diff_mult_trends <- lm(mrate ~ legal+factor(state)*factor(year), data = deaths_all_83)
+
+#summary(diff_mult_trends)
+
+#sqrt(diag(vcovHC(diff_mult_trends, type = "HC1")))
+
+
+```
+
+
+##### PSM with Diff-in-diff
+
+Diff-in-diff controls *unobserved* hetergeneity. 
+
+Perhaps, you want the option to control for **observed** heterogeneity. You can use PSM wit Diff-in-diff
+ 
+1.  Use propensity scores to ensure control group is similar to treatment group
+2.  Matching control and participant units ex-ante on pre-program characteristics results in more reliable outcomes 
+
+Still, propensity scores only make the groups comparable in terms of **observable characteristics** But, you can use diff-in-diff to handle the unobserved heterogeneity that may still exist. 
+
+
 #### Differencing with More than Two Years of Data
+So, we kind of already had this example a minute ago, but let's get into the details!
+
 First Differencing can be used with more than two years of panel data, but we must be careful to account for serial correlation (and, as usual, possibly heteroskedasticity) in the FD equation. This is because the FD equation is no longer just a single cross section. 
 
 Generally, we should also include a full set of time dummies for a convincing analysis.
