@@ -157,16 +157,17 @@ First-Difference regression
 library(tidyverse)
 library(AER)
 
-#crime2 =  crime2 %>% group_by(d87) %>% mutate(crmrte_diff = crmrte - lag(crmrte,default =0))
+crime2 =  crime2 %>% group_by(d87) %>% mutate(crmrte_diff = crmrte - lag(crmrte), cunem_diff = cunem - lag(cunem))
 
-#crime2 = crime2 %>% group_by(d87) %>% mutate(cunem_diff = cunem - lag(cunem, default =0)) 
-
+first_diff1 <-lm(crmrte_diff ~ cunem_diff, data = crime2)
+summary(first_diff1)
 # Here, we are calculating the difference in crimerate by "hand"
 crmrte_diff = crime2$crmrte[crime2$d87==0] - crime2$crmrte[crime2$d87 == 1]
 # Here, we are calculating the difference in unemployment rate by "hand"
 cunem_diff = crime2$unem[crime2$d87==0] - crime2$unem[crime2$d87 == 1]
 
-#let's run the simplre regression of the differences between the two time periods on unem on crimerate
+
+#let's run the simple regression of the differences between the two time periods on unem on crimerate
 first_diff <-lm(crmrte_diff ~ cunem_diff)
 summary(first_diff)
 
@@ -257,7 +258,7 @@ group:
 \begin{equation*}\hat{\beta }_{F D} =\overline{ \Delta y}_{t r e a t} -\overline{ \Delta y}_{c o n t r o l}\text{.}
 \end{equation*}
 
-This is also known as Difference-in-Difference model and it is the same thing as a simple first difference model where there are only two time periods with an interaction. And that's what the above equation is - the differences are within the same unit. 
+This is also known as Difference-in-Difference model and it is the same thing as a simple first difference model where there are only two time periods. And that's what the above equation is - the differences are within the same unit. 
 
 The FD estimator is useful when treatment assignment depends on $a_{i}$. If we think assignment in period two (still taking $x_{i 1} =0$ for all $i$) is determined largely by $y_{i 1}$ (first-period response), it is common to add $y_{i 1}$ as a regressor: 
 
@@ -442,7 +443,7 @@ Re-living that debate in 2020/2021  (moved onto inflation debate in 2022)
 | Policy|Restrict lending     | Increase lending   |                     |             |
 | July 1, 1931 (after crisis) | 132                | 121                 | 11          |
 | July 1, 1930 (before crisis)| 165                | 135                 | 20          |
-| Difference                  | -33                | 14                  | 19          |
+| Difference                  | -33                | 14                  | -19          |
 
 Hence - Difference-in-Difference
 
@@ -451,7 +452,7 @@ $$\delta = (Y_{6, 1931}-Y_{6, 1930})-(Y_{8, 1931}-Y_{8, 1930})$$ (ie columns)
                                                      $$\delta  = -33 - 14$$
 Compare Change in N banks between the 2 districts: 
 $$\delta = (Y_{6, 1931}-Y_{8, 1930})-(Y_{6, 1931}-Y_{8, 1930}) $$ (ie rows)
-                                                    $$\delta  = 11 - 30$$
+                                                    $$\delta  = 11 - 20$$
 
 * Comparing changes instead of levels adjusts for the fact that district 8 had more banks open in the 6th district
 
@@ -658,14 +659,31 @@ deaths_all_83 <- deaths_all[deaths_all$year <=1983,]
 deaths_all_83 <- deaths_all_83[deaths_all_83$agegr == '18-20 yrs',]
 
 
-w = deaths_all_83$pop
+
+# state and time fixed effects - no trends, no weights, no beertax
 diff_mult <- lm(mrate ~ legal+factor(state)+factor(year), data = deaths_all_83)
+
+#state and time fixed effects with beertax  - no trends, no weights
+
 diff_mult_cov<- lm(mrate ~ legal+beertaxa+factor(state)+factor(year), data = deaths_all_83)
+
+#state and time fixed effects with weights - no trends, no beertax
+w = deaths_all_83$pop
 diff_mult_wls <- lm(mrate ~ legal+factor(state)+factor(year), data = deaths_all_83, weights = w)
 
-rob_se <- list(sqrt(diag(vcovHC(diff_mult, type = "HC1"))), sqrt(diag(vcovHC(diff_mult_cov, type = "HC1"))),sqrt(diag(vcovHC(diff_mult_wls, type = "HC1"))))
+#state and time fixed effect with trends - no beertax, no weights
+diff_mult_trends <- lm(mrate ~ legal+factor(state):year+factor(year)+factor(state), data = deaths_all_83)
 
-stargazer(diff_mult, diff_mult_cov,diff_mult_wls,
+#state and time fixed effect with trends - no beertax
+diff_mult_trends_weight <- lm(mrate ~ legal+factor(state):year+factor(year)+factor(state), data = deaths_all_83, weights =w)
+
+#state and time fixed effect with trends, weights and beertax
+diff_mult_all <- lm(mrate ~ legal+beertaxa+factor(state):year+factor(year)+factor(state), data = deaths_all_83, weights =w)
+
+
+rob_se <- list(sqrt(diag(vcovHC(diff_mult, type = "HC1"))), sqrt(diag(vcovHC(diff_mult_cov, type = "HC1"))), sqrt(diag(vcovHC(diff_mult_wls, type = "HC1"))), sqrt(diag(vcovHC(diff_mult_trends, type = "HC1"))), sqrt(diag(vcovHC(diff_mult_trends_weight, type = "HC1"))), sqrt(diag(vcovHC(diff_mult_all, type = "HC1"))))
+
+stargazer(diff_mult, diff_mult_cov,diff_mult_wls, diff_mult_trends, diff_mult_trends_weight,diff_mult_all,
           digits = 3,
           header = FALSE,
           type = "html", 
@@ -673,17 +691,10 @@ stargazer(diff_mult, diff_mult_cov,diff_mult_wls,
           title = "Diff-Diff MLDA law regression",
           model.numbers = FALSE,
           omit = c("year", "state"),
-          column.labels = c("(1)"))
-```
-```{r}
-#include trends
-#diff_mult_trends <- lm(mrate ~ legal+factor(state)*factor(year), data = deaths_all_83)
-
-#summary(diff_mult_trends)
-
-#sqrt(diag(vcovHC(diff_mult_trends, type = "HC1")))
-
-
+          column.labels = c("(1)","(2)","(3)","(4)","(5)","(6)"),
+          add.lines = list(
+          c("State Trends", "No", "No", "No", "Yes","Yes"),
+          c("Weights", "No", "No","Yes", "No", "No")))
 ```
 
 
@@ -719,7 +730,7 @@ When we difference we lose the first time period, as before, but we are left wit
 \begin{equation} \Delta y_{i t} =\delta _{2}  \Delta d 2_{t} +\ldots  +\delta _{T}  \Delta d T_{t} +\beta _{1}  \Delta x_{i t 1} +\beta _{2}  \Delta x_{i t 2} +\ldots  +\beta _{k}  \Delta x_{i t k} + \Delta u_{i t}
 \end{equation}for $t =2 ,3 ,\ldots  ,T$. 
 
-With $T \geq 3$, the changes in the time dummies consists of the values $\{ -1 ,0 ,1\}$. For example, with $T =3$, $ \Delta d 2_{2} =1$, $ \Delta d 2_{3} = -1$, $ \Delta d 3_{2} =0$, $ \Delta d 3_{3} =1$.
+With $T \geq 3$, the changes in the time dummies consists of the values $\{ -1 ,0 ,1\}$. For example, with $T =3$, $\Delta d 2_{2} =1$, $ \Delta d 2_{3} = -1$, $\Delta d 3_{2} =0$, $\Delta d 3_{3} =1$.
 
 Unless we are interested in the original $\delta _{t}$, it is easier to include an overall intercept and not difference the time dummies. We lose a time dummy because we lose the first time
 period: 
