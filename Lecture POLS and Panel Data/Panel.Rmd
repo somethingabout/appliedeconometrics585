@@ -299,7 +299,7 @@ Note that it is not enough to just assume
 \begin{equation}C o v (x_{i t} ,u_{i t}) =0\text{,}t =1 ,2\text{,}
 \end{equation}which is known as *contemporaneous exogeneity*.
 
-The `stronger assumption 
+The `stronger assumption'
 
 \begin{equation}C o v (x_{i s} ,u_{i t}) =0\text{,}s ,t =1 ,2.
 \end{equation} 
@@ -696,8 +696,6 @@ stargazer(diff_mult, diff_mult_cov,diff_mult_wls, diff_mult_trends, diff_mult_tr
           c("State Trends", "No", "No", "No", "Yes","Yes"),
           c("Weights", "No", "No","Yes", "No", "No")))
 ```
-
-
 ##### PSM with Diff-in-diff
 
 Diff-in-diff controls *unobserved* hetergeneity. 
@@ -707,7 +705,7 @@ Perhaps, you want the option to control for **observed** heterogeneity. You can 
 1.  Use propensity scores to ensure control group is similar to treatment group
 2.  Matching control and participant units ex-ante on pre-program characteristics results in more reliable outcomes 
 
-Still, propensity scores only make the groups comparable in terms of **observable characteristics** But, you can use diff-in-diff to handle the unobserved heterogeneity that may still exist. 
+Still, propensity scores only make the groups comparable in terms of **observable characteristics** But, you can use diff-in-diff to handle the unobserved heterogeneity that may still exist. This is particularly important if you believe selection bias is present in identifying treatment/control grups.
 
 
 #### Differencing with More than Two Years of Data
@@ -730,7 +728,7 @@ When we difference we lose the first time period, as before, but we are left wit
 \begin{equation} \Delta y_{i t} =\delta _{2}  \Delta d 2_{t} +\ldots  +\delta _{T}  \Delta d T_{t} +\beta _{1}  \Delta x_{i t 1} +\beta _{2}  \Delta x_{i t 2} +\ldots  +\beta _{k}  \Delta x_{i t k} + \Delta u_{i t}
 \end{equation}for $t =2 ,3 ,\ldots  ,T$. 
 
-With $T \geq 3$, the changes in the time dummies consists of the values $\{ -1 ,0 ,1\}$. For example, with $T =3$, $\Delta d 2_{2} =1$, $ \Delta d 2_{3} = -1$, $\Delta d 3_{2} =0$, $\Delta d 3_{3} =1$.
+With $T \geq 3$, the changes in the time dummies consists of the values $\{ -1 ,0 ,1\}$. For example, with $T =3$, $\Delta d 2_{2} =1$, $\Delta d 2_{3} = -1$, $\Delta d 3_{2} =0$, $\Delta d 3_{3} =1$.
 
 Unless we are interested in the original $\delta _{t}$, it is easier to include an overall intercept and not difference the time dummies. We lose a time dummy because we lose the first time
 period: 
@@ -789,7 +787,34 @@ Everything gets differenced in the estimating equation, even policy dummy variab
 
 Note that the new intercepts, $\eta _{t}$, are $\eta _{t} =\delta _{t} -\delta _{t -1}$. If we don't care about the $\delta _{t}$, just include a full set of time dummies in the FD equation (one fewer than levels equation). 
 
-If, say, we interact $w_{i t}$ and a variable $r_{i t}$, we construct $w_{i t} r_{i t}$ and then difference it. (Example later.)
+If, say, we interact $w_{i t}$ and a variable $r_{i t}$, we construct $w_{i t} r_{i t}$ and then difference it. 
+
+#### Lags of Treatment Variables
+We need to be careful if the policy variable $w_{i t}$ reacts to past shocks.  
+
+For example, if $y_{i t}$ is the poverty rate and $w_{i t}$ is some measure of government assistance, then it is possible that $C o v (u_{i t} ,w_{i t +1}) \neq 0$. 
+
+In other words, a large shock to the poverty rate in year t could prompt an increase in government assitance the following year. If we have at least three time periods, we can test for feedback  
+
+Estimate the following model with FE:
+\begin{equation*}y_{i t} =\eta _{1} +\alpha _{2} d 2_{t} +\ldots  +\alpha _{T -1} d (T -1)_{t} +\beta  w_{i t} +\delta  w_{i ,t +1} +\boldsymbol{x}_{\mathbf{i} \mathbf{t}} \mathbf{\psi } +a_{i} +u_{i t}
+\end{equation*}
+
+Compute a cluster robust t-statistic for $\hat{\delta }$ 
+
+This is known as a \textit{falsification test} and rejecting $H_{0} :\delta  =0$ suggests that there is feedback from the error term to the policy variable. 
+
+Another issue is if trends are unique across individual observations. 
+
+A potential solution is the heterogeneous trend model
+\begin{equation*}y_{i t} =\eta _{1} +\alpha _{2} d 2_{t} +\ldots  +\alpha _{T} d T_{t} +\beta  w_{i t} +\boldsymbol{x}_{\mathbf{i} \mathbf{t}} \mathbf{\psi } +a_{i} +g_{i} t +u_{i t}
+\end{equation*} 
+
+The new term $g_{i} t$ is a unit-specific time trend. 
+ 
+This allows the policy intervention to not only be correlated with level differences among units (captured by $a_{i}$), but also by trend differences. We can estimate this model by taking first differences 
+\begin{equation*} \Delta y_{i t} =\alpha _{2}  \Delta d 2_{t} +\ldots  +\alpha _{T}  \Delta d T_{t} +\beta   \Delta w_{i t} + \Delta \boldsymbol{x}_{\mathbf{i} \mathbf{t}} \mathbf{\psi } +g_{i} + \Delta u_{i t}
+\end{equation*}*This equation can then be estimated by FE., though we need to ensure we have $T \geq 3$ 
 
 ##### EXAMPLE: Effects of Job Training Grants in Michigan 
 
@@ -820,8 +845,10 @@ Estimate by pooled OLS (using two years). The firm effect $a_{i}$ has been remov
 Only keep firms where scrap is not missing for all three years:
 
 ```{r}
-data(jtrain)
 library(dplyr)
+library(wooldridge)
+
+data(jtrain)
 
 #create new variable  if lscrap is missing
 jtrain <-mutate(jtrain, nonmiss = ifelse(!is.na(lscrap), 1,0))
@@ -846,7 +873,7 @@ pooled OLS actually shows a positive (but insignificant) effect.
 
 ```{r}
 
-lscrap_diff3 <- lm(clscrap~cgrant+cgrant_1+d89, jtrain_3)
+lscrap_diff3 <- lm(clscrap~cgrant+cgrant_1+d88+d89, jtrain_3)
 
 # display with cluster VCE and df-adjustment
 lscrap_diff3_cse <- dfa * vcovHC(lscrap_diff3, type = "HC0", cluster = "group", adjust = T)
@@ -858,7 +885,7 @@ Differencing gives much stronger results, but statistical signif. is marginal (s
 
 ```{r}
 
-lscrap_diff3 <- lm(clscrap~cgrant+ d89, jtrain_3)
+lscrap_diff3 <- lm(clscrap~cgrant+ d89+, jtrain_3)
 
 # display with cluster VCE and df-adjustment
 lscrap_diff3_cse <- dfa * vcovHC(lscrap_diff3, type = "HC0", cluster = "group", adjust = T)
@@ -875,7 +902,12 @@ The two-period, before-after setting is a special case of a more general policy 
 
 \begin{equation*}y_{i t} =\eta _{1} +\alpha _{2} d 2_{t} +\ldots  +\alpha _{T} d T_{t} +\beta  w_{i t} +\boldsymbol{x}_{\mathbf{i} \mathbf{t}} \mathbf{\psi } +a_{i} +u_{i t} ,t =1 ,\ldots  ,T
 \end{equation*}
+
 $w_{i t}$ is the binary intervention indicator and $\beta$ estimates the average treatment effect of the policy 
+$d T_{t}$ is the binary variable if the observation is in that time,t
+$d 2_{t}$ is the binary variable if the observation is in that is the other time period, 2
+
+
 
 To allow $w_{i t}$ to be systematically related to the unobserved fixed effect $a_{i}$, we estimate the regression with either First Differencing or Fixed Effects, using cluster-robust standard errors. 
 We can also include lags of the policy intervention $w_{i t -1} ,w_{i ,t -2 ,\ldots }$ 
@@ -949,6 +981,7 @@ lscrap_pols_cse <- dfa * vcovHC(lscrap_pols, type = "HC0", cluster = "group", ad
 coeftest(lscrap_pols, vcov = lscrap_pols_cse)
 
 ```
+
 ```{r}
 lscrap_fe <- plm(lscrap ~ grant+grant_1+d88+d89, 
                     data = jtrain,
@@ -1063,7 +1096,7 @@ Might be worried about strict exogeneity: Why are union status and marital statu
 ```{r}
 data(wagepan)
 
-reg_tfe <- lm(lwage ~ educ+exper+union+married+d81:d87, wagepan)
+reg_tfe <- lm(lwage ~ educ+exper+union+married+d81+d82+d83+d85+d85+d86, wagepan)
 
 summary(reg_tfe)
 
@@ -1088,7 +1121,7 @@ Now, let's do the Random Effects:
 
 ```{r}
 
-random_wage <- plm(lwage~educ+exper+union+married+d81:d87, data = wagepan, index = c("nr", "year"), model = "random")
+random_wage <- plm(lwage~educ+exper+union+married+d81+d82+d83+d85+d85+d86, data = wagepan, index = c("nr", "year"), model = "random")
 
 #clustered se
 G <- length(unique(wagepan$nr))
@@ -1115,15 +1148,16 @@ fixed_wage <- plm(lwage~educ+exper+union+married,
                index = c("nr", "year"), 
                model = "within", 
                effect = "twoways")
+
 #clustered se
 G <- length(unique(wagepan$nr))
 N <- length(wagepan$nr)
-dfa <- (G/(G - 1)) * (N - 1)/fixed_tw_wage$df.residual
+dfa <- (G/(G - 1)) * (N - 1)/fixed_wage$df.residual
  
 
-fixed_wage_cse <- dfa * vcovHC(fixed_tw_wage, type = "HC0", cluster = "group", adjust = T)
+fixed_wage_cse <- dfa * vcovHC(fixed_wage, type = "HC0", cluster = "group", adjust = T)
 
-coeftest(fixed_tw_wage, vcov = fixed_wage_cse)
+coeftest(fixed_wage, vcov = fixed_wage_cse)
 
 ```
 Two variables are dropped: educ does not change over time for anyone in the sample. exper must also be dropped because it increases by one for every year in the sample. The starting points for exper are different across people but not distinguishable from the fixed effect.
@@ -1287,7 +1321,7 @@ coeftest(airfare_tfe, vcov = airfare_tfe_cse)
 ```{r}
 
 
-random_air <- plm(lfare~concen+ldist+ldistsq , 
+random_air <- plm(lfare~concen+ldist+ldistsq, 
                data =airfare, 
                index = c("id", "year"), 
                model = "random", 
@@ -1410,29 +1444,3 @@ This is implemented as $H_{0} :\gamma _{1} =\ldots  =\gamma _{k} =0$
 
 Rejecting this suggests that FE is preferred.  An advantage of CRE is that it allows for estimation of the effects of time-constant explanatory variables, not possible using FE. 
 
-#### Advanced considerations with policy analysis
-We need to be careful if the policy variable $w_{i t}$ reacts to past shocks.  
-
-For example, if $y_{i t}$ is the poverty rate and $w_{i t}$ is some measure of government assistance, then it is possible that $C o v (u_{i t} ,w_{i t +1}) \neq 0$. 
-
-In other words, a large shock to the poverty rate in year t could prompt an increase in government assitance the following year. If we have at least three time periods, we can test for feedback  
-
-Estimate the following model with FE:
-\begin{equation*}y_{i t} =\eta _{1} +\alpha _{2} d 2_{t} +\ldots  +\alpha _{T -1} d (T -1)_{t} +\beta  w_{i t} +\delta  w_{i ,t +1} +\boldsymbol{x}_{\mathbf{i} \mathbf{t}} \mathbf{\psi } +a_{i} +u_{i t}
-\end{equation*}
-
-Compute a cluster robust t-statistic for $\hat{\delta }$ 
-
-This is known as a \textit{falsification test} and rejecting $H_{0} :\delta  =0$ suggests that there is feedback from the error term to the policy variable. 
-
-Another issue is if trends are unique across individual observations. 
-
-A potential solution is the heterogeneous trend model
-\begin{equation*}y_{i t} =\eta _{1} +\alpha _{2} d 2_{t} +\ldots  +\alpha _{T} d T_{t} +\beta  w_{i t} +\boldsymbol{x}_{\mathbf{i} \mathbf{t}} \mathbf{\psi } +a_{i} +g_{i} t +u_{i t}
-\end{equation*} 
-
-The new term $g_{i} t$ is a unit-specific time trend. 
- 
-This allows the policy intervention to not only be correlated with level differences among units (captured by $a_{i}$), but also by trend differences. We can estimate this model by taking first differences 
-\begin{equation*} \Delta y_{i t} =\alpha _{2}  \Delta d 2_{t} +\ldots  +\alpha _{T}  \Delta d T_{t} +\beta   \Delta w_{i t} + \Delta \boldsymbol{x}_{\mathbf{i} \mathbf{t}} \mathbf{\psi } +g_{i} + \Delta u_{i t}
-\end{equation*}*This equation can then be estimated by FE., though we need to ensure we have $T \geq 3$ 
