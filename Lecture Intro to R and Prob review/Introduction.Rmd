@@ -1,0 +1,530 @@
+---
+title: "Causal Inference"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Joint & Conditional Distributions
+*Joint distribution* is when we calculate the probability of two random variable occurring at the same time.
+
+\begin{equation}
+f_{X,Y}(x,y) = P(X=x, Y=y)
+\end{equation}
+
+An important consideration is whether X and Y are *independent*. Independence between two random variables means that their outcomes do not depend on one another. 
+
+If the two variables are independent, a nice feature is that their joint pdf (probability distribution function) is the product of their individual pdfs.
+
+
+*Conditional distribution* is when we calculate the probability of two **dependent** random variables (or more).  In other words, we want to know how X may affect Y.  We can summarize this as the conditional probability density function.
+
+\begin{equation}
+f_{Y|X}(y|x) = f_{x,y}(x,y)/f_x(x)
+\end{equation}
+
+We'll often see it like this:
+\begin{equation}
+f_{Y|X}(y|x) = P(Y=y|X=x)
+\end{equation}
+
+
+## Expected Value
+Take a random variable X, the *expected value* of X (E(X) is the weighted average of all possible values of X. 
+
+Sometimes it's called a population mean, especially if we are relating it to represent some specific population.
+
+The expected value of X is the weighted average:
+
+\begin{equation}
+E(X) = x_1f(x_1) +x_2f(x_2) \dots + x_1k(x_k) = \sum^k_{j=1} x_j f(x_j)
+\end{equation}
+
+There are some properties in expected values that are useful to know (especially when we are deriving estimators, etc.).
+
+*Property 1* For any constant c, $E(c) = c$ 
+
+*Property 2* For any constant a and b, $E(aX+b) = aE(X) +b$  
+
+*Property 3* If ${a_1,a_2 ... a_n}$ are constant and ${X_1, X_2 ..., X_3}$ are random variables then $E(a_1X_1 +a_2X_2  + ... + a_nX_n) = a_1E(x_1)+a_2E(X_2) + ... a_nE(X_n)$ 
+
+Since we work with random values, we know that the actual value can vary and we can never know the exact answer. 
+
+However, we can estimate what the value should be because of probability. We know that there is a 50/50 chance to get tails when I flip a coin. The law of large numbers shows us that if we repeat this experiment enough times, the value we get should be .5. 
+
+Thus, the *expected value* of the probability to get tails is .5
+
+Similarly, we have an expected value that the mean sampling distribution of a random value to be approximately equal to its population mean.
+
+\begin{equation}
+    E[X] = \mu
+\end{equation}
+    
+- When a statistic meets this property it is an *unbiased estimator*.
+- It is always better to use an unbiased estimator.
+  
+*Remember: that statistics are never `exact', they are approximate*
+
+## Moments
+Technically, many statistics we use is a `moment' . The moments are:
+1. Mean
+2. Variance
+3. skewness
+4. kurtosis
+
+1. Mean
+\begin{equation}
+    E[X] = \mu
+\end{equation}
+
+2. Variance
+Variance is the expected distance to its mean
+\begin{equation}
+Var(X) = E(X - \mu)^2
+\end{equation}
+
+Standard deviation is simply the positive square root of the variation. This makes it way easier to work with.
+
+\begin{equation}
+sd(X) = \sqrt{Var(X)}
+\end{equation}
+
+It has some properties:
+- for any constant c, $sd(c) = 0 $
+- $sd(aX + b) = |a|sd(X)$
+
+Standardizing a Random Variable:
+\begin{equation}
+Z = \frac{X-\mu}{\sigma}
+\end{equation}
+
+Where the mean is 0 and the standard deviation is 1
+
+3. Skewness
+
+\begin{equation}
+E(X^3) = E[(X-\mu)^3]/\sigma^3
+\end{equation}
+If skewness is around 0, it means it's perfectly symmetrical. 
+
+4. Kurtosis
+
+\begin{equation}
+E(X^4) = E[(X-\mu)^4]/\sigma^4
+\end{equation}
+
+Larger value suggest the distribution has "fatter" tails. It also describes how "peaked" a distribution is.
+
+### Measures of Association: Covariance
+
+Sometimes, it's useful to characterize the relationship between any two random variables: covariance and correlation do this job well. 
+
+*Covariance* is defined as:
+\begin{equation}
+Cov(X,Y) = E[(X-E[X])(Y-E[Y])]
+\end{equation}
+
+Covariance measures the amount of *linear* dependence between two variables. Positive values mean the random variables move together, negative values mean they move in opposite directions.
+
+There are some useful properties of covariance:
+
+- If X and Y are *independent*, then $Cov(X,Y) = 0$ 
+(the opposite is not true)
+- $Cov(a_1X+b_1, a_2Y+b_2) = a_1a_2Cov(X,Y)$ 
+covariance can be altered by multiplying one or both of the random variables by a constant 
+
+This basically implies that measurement units matters
+-  $|Cov(X,Y) |\leq sd(X)sd(Y)$ 
+The absolute value is bounded by the product of their standard deviations
+
+
+Given Cov property 2, a measure that doesn't take into account units is desirable, and why the correlation coefficient is used so frequently.
+
+*correlation coefficient* is defined as:
+\begin{equation}
+\begin{split}
+Corr(X,Y) = E[\frac{(X-E[X])}{\sigma_X} \cdot \frac{(Y-E[Y])}{\sigma_Y}]  \\
+=\frac{Cov(X,Y)}{sd(X) \cdot  sd(Y)} = \frac{\sigma_{XY}}{\sigma_x \sigma_y}
+\end{split}
+\end{equation}
+
+This also has some useful properties:
+- $-1 \leq Corr(X,Y) \leq 1$ 
+if correlation is 0, there is no relationship (but, this does *not* imply independence) 
+- $Corr(a_1X+b_1, a_2Y+b_2) = Corr(X,Y) $  if $a_1a_2>0$ 
+What's nice, is that the correlation is invariant to measurement units
+
+### Properties of Variance
+Property:
+\begin{equation}
+Var(aX +bY) = a^2Var(X) +b^2Var(Y) + 2abCov(X,Y)
+\end{equation}
+
+It follows that if Cov(X,Y) = 0, then:
+\begin{math}
+\begin{aligned}
+Var(X+Y) =Var(X) +Var(Y) \\
+Var(X+Y) =Var(X) - Var(Y) 
+\end{aligned}
+\end{math} \vskip10pt
+
+This is called *pairwise uncorrelated random variables*
+
+If $\{X_1, \dots X_n\}$ are pairwise uncorrelated random variables and $a_i$ are constants then,  \\
+Property: 
+\begin{equation}
+Var(a_1X_1 \dots X_1) = a^2_iVar(X_1) +\dots +a_n^2Var(X_i)
+\end{equation}
+
+\end{frame}
+
+## Conditional Expectation
+This is *very* important for econometrics - basically it's the premise for everything we will be doing. 
+
+We may want to summarize the conditional probability density function (ie we want to know the cdf of Y given X). 
+
+Suppose X has taken some value, x, then, we can compute the expected value of Y, given that we know what the outcome of X is. 
+
+This is basically:
+\begin{equation}
+E(Y|X =x)
+\end{equation}
+
+Sometimes, you'll see it called, the *conditional expectation function*. For a continuous variable it's this:
+\begin{equation}
+E[Y|X =x] = \int tf_y (t|X =x) \, dt
+\end{equation}
+
+It is the weighted average of possible values of Y.  It tells us how the expected value of Y varies with x.
+
+
+### Properties of Conditional Expectation
+
+Property 1: 
+
+For any function $c(X)$:
+\begin{equation}
+E[c(X)|X] = c(X) 
+\end{equation}
+
+This means that functions of X behaves constant when we calculate conditional expectations conditional on X.  For example, if we know X, then we also know $X^2$  
+
+Property 2: 
+
+For functions of $a(X)$ and $b(X)$:
+
+$$E[a(X)Y+b(X)|X] = a(X)E(Y|X) +b(X)$$
+
+
+Property 3: 
+
+If X and Y are independent, then:
+\begin{equation}
+E(Y|X) = E(Y)
+\end{equation}
+If they are independent, the expected value of Y given X does not depend on X. Therefore, $E(Y|X)$ always equals the unconditional expected value of Y.
+
+The next two properties describe the *Law of Iterated Expectations*, which is that the expected value of $\mu(X)$ is equal to the expected value of Y 
+
+Property 4: 
+
+\begin{equation}
+E[E(Y|X)] =E(Y)
+\end{equation}
+
+We can find the expected value of Y conditional in X if we first find $E(Y|X,Z)$ for any other random variable Z and then find the expected value of  $E(Y|X,Z)$  conditional on X. \vskip5pt
+
+Property 4': 
+
+\begin{equation}
+E(Y|X) =E[E(Y|X,Z)|X]
+\end{equation}
+
+-  Think of x as a discrete vector taking on possible values $c_1, c_2, \dots , c_M$ , with probabilities $p_1, p_2, \dots , p_M$. Then the LIE says:
+\begin{equation}
+E(y) = p_1E(y=x=c_1) + p_2E(y|x=c_2)+\dots+p_ME(y|x=c_M)
+\end{equation}
+
+- That is, $E(y)$ is simply a weighted average of the $E(y|x = c_j)$, where the weight $p_j$ is the probability that x takes on the value of $c_j$. In other words, a weighted average of averages. 
+
+E.g., suppose we are interested in average IQ generally, but we have measures of average IQ by gender. We could figure out the quantity of interest by weighting average IQ by the relative proportions of men and women.
+
+
+Property 5: 
+
+if $E(Y|X) = E(Y)$, then $Cov(X,Y) = 0$ 
+If knowledge of X does not change the expected value of Y, then X and Y *must* be uncorrelated (similarly, if they are correlated, then $E(Y|X)$ must be correlated.) 
+
+Property 6: 
+If $E(Y^2)<\infty$ and $E[g(X)^2]<\infty$ for some function g, then $E\{[Y - \mu(X)^2|X\} \leq E\{[Y-g(X)]^2|X\}$ and $E\{[Y-\mu(X)]^2\} \leq E\{[Y-g(X)]2^\}$ 
+
+This is useful for prediction/forecasting. The first inequality says that if we measure prediction inaccuracy as the expected squared prediction error, conditional on X, then the conditional mean is better than any other function of X for predicting Y. 
+
+
+### Conditional Variance
+
+*Conditional Variance* is very useful for econometrics. It tells us how much variance is left if we use $E(Y|X)$ to "predict" Y. It is defined by:
+
+\begin{equation}
+E(Y|X=x) =E(Y^2|x) - [E(Y|x)]^2
+\end{equation}
+
+One useful property of it is that the distribution of Y given X does not depend on X: 
+
+If X and Y are *independent*,  then $Var(Y|X) = Var(Y)$
+
+# Causal Effects
+
+The goal of policy analysis (a subsect of this is sometimes called program evaluation) is to assess the causal effect of public policy interventions. 
+
+Economists are typically intersted in questions about causality - does X cause Y? Sometimes we are interested in prediction, but over the past few decades much of econometrics have been dedicated to precisely predicting an estimator. Many techniques in computer science, such as machine learning techniques focus on prediction.
+
+Examples include effects of:
+
+- Job training programs on earnings and employment
+- Class size on test scores
+- Minimum wage on employment
+- Military service on earnings and employment
+- Tax-deferred saving programs on savings accumulation
+- Health insurance on health outcomes
+- Effects of individual choices like college attendance
+
+In addition, we may be interested in the effect of variables that do not represent public policy interventions. Examples:
+
+- Interest rate on credit card usage
+- Incentive scheme on employer productivity
+- Terrorist risk on economic behavior
+
+For a moment, think about causal effects.
+
+Often, you want to evaluate a policy or intervention that has two states in the world. In data terms, it's a binary terms. In real world terms, one group was exposed the the intervention (this is called the *treatment* group) and the other group was not exposed (this is called the *control* group). Language is important as we will return to using the term treatment group very frequently. 
+
+We know the *outcome* of these states - that somebody has either been part of the policy group or not. 
+
+For example, they received free health insurance or they did not. 
+
+The treatment effect is simple
+$$te = y(1) - y(0)$$
+
+$y(1)$ being that they got the treatment and $y(0)$ that they did not.  You should be asking yourself, but wait - they only participated in one option. They can't do both, so how can you subtract the different between participating and not participating of the same person?!
+
+We need to rely on counterfactuals. Holding everything constant, what is the effect of health if they receive free health care. HOlding everything constant, what is the effect of health if they don't receive the benefit?  These are the potential outcomes (or counterfactual outcomes)
+
+So, we often can't estimate each person's treatment effect. INSTEAD, we estimate the **average treatment effect (ATE henceforth)** This is the average of the treatment effects across the entire population.
+
+$$\tau_{ATE} = E[te_i] = E[y_i(1)-y(0_i)]$$
+And because of the linearity of the expected value this is equal to:
+$$= E[y_i(1)]-E[y_i(0)]$$
+
+The observed outcome of $y_i$ can be
+
+$$y_i= (1-x_i)y_i(0)+x_iy_i(1)$$
+Where $y_i = y_i(0)$ if $x_i = 0$ and $y_i = y_i(1)$ if $x_i=1$
+
+You can also think about the Average Treatment effect on the Treated  (TOT in A\&P or sometimes seen as ATET)
+
+$$E[ Y_i(1) - Y_i(0)|x_i=1] = E[Y_i(1)|x_i=1]-E[Y_i(0)|x_i=1] $$
+
+Which we can't observe (well components of it). This illustrated the counterfactual nature of the causal effect: the average outcome of the treated minus the average outcome of the treated *if they hadn't been treated* - this last part we can't observe and is the counterfactual. 
+
+
+$$y_i = \beta_0 + \beta_1x_i + u_i$$
+The above equation is the result of a RCT (randomized control trial) - IF there is random assignment.
+
+$\beta_1$ is just the treatment or causal effect.  This is often called the difference in means estimator and is the unbiased treatment effect $\tau$. If $x_i$ is independent of $u_i(0)$ then we know $E(u_i(0)|x_i] = 0$). This is the same as saying $x_i$ is independent of $y_i(0)$. This assumption is guaranteed **only** under *random assignment*.   This means that the treatment must be assigned randomly.
+
+Let's see what happens when we don't have random assignment (as it's very hard to have this situation without doing an experiment). Instead, let's imagine if we can have control variables that help predict the potential outcomes and determine the assignment in the treatment and control group - let's call this group of controls x.
+
+To reduce confusion we will rewrite $y_i= (1-x_i)y_i(0)+x_iy_i(1)$ as 
+
+$$y_i= (1-w_i)y_i(0)+w_iy_i(1)$$
+Then we can have the assumption that 
+$w$ is independent of $[y(0),y(1)]$ *conditional* on x
+
+This is called **conditional independence** where the variables in x are in the conditioning set. This is also called **unconfounded assignment** or **ignorable assignment**
+
+When we think of control variables, what we want to do is to be able to explain all reasons as to why some people received the treatment and why other people didn't. 
+
+Another way to think about this is that we are trying to create an experiment where one group received treatment and the other didn't. But, the two groups are identical.  The controls are ensuring that the treatment effect is unbiased, ceteris paribus - holding all other factors constant. If we hold all factors that differentiate the two groups constant, we can say something about the treatment effect. 
+
+
+### The Self-Selection Problem
+
+Consider the following model:
+$$E (y\vert w ,\boldsymbol{x}) =\alpha  +\tau  w +\gamma _{1} x_{1} +\ldots  +\gamma _{k} x_{k} \\
+y =(1 -w) y (0) +w y (1)$$
+
+We include $x_{j}$ to account for the possibility that program participation ($w$) is not randomly assigned.
+
+Participation decisions may differ systematically by individual characteristics - this is the *self-selection problem*
+
+For example, children eligible for programs like Head Start participate largely based on parental decisions. These parental decisions depend on characteristics like family background and structure which also tend to predict child outcomes. Thus, we need to control for these characteristics to get closer to random assignment 
+
+Another example could be looking at the effect of drug use on unemployment status. We need to account for any systematic differences
+between those who use drugs and those who do not. Drug use may be correlated with a number of factors that also influence unemployment. If we do not control for these factors, then we cannot identify the causal effect of drug use on unemployment status.
+
+Or it can be at the aggregate level - city or state decisions on laws, let's say gun violence, may be implemented systematically related to other factors that affect violent crime. 
+
+ By regressing $y_{i}$ on $w_{i} ,x_{1 i} ,\ldots  ,x_{k i}$, we are engaging in regression adjustment and the coefficient on $w_{i}$ is $\hat{\tau }_{i}$ is the regression adjusted estimator. 
+
+
+### Assignment Mechanism
+An important part to thinking about policy analysis is the assignment mechanism.
+
+Assignment mechanism is the procedure that determines which units are selected for treatment intake. 
+
+Examples include:
+
+- random assignment
+
+- selection on observables
+
+- selection on unobservables
+
+Typically, treatment effects models attain identification by restricting the assignment mechanism in some way. 
+
+Estimation of causal effects of a treatment (usually) starts with studying the assignment mechanism
+
+Think about: How were treatments assigned?
+
+**Best case**: Randomized Experiment: Random assignment
+
+**Next best case** Better Observational Study: Assignment is not random, but assignment mechanism is clearly described. Try to find “natural experiments”, where assignment is “as good as
+random”
+
+**Worst case** Poorer Observational Study: No attention given to the assignment mechanism
+
+**Recall**
+
+- Causality is defined by potential outcomes, not by realized (observed) outcomes
+
+- Observed association is neither necessary nor sufficient for causation
+
+- Randomization is called the “gold standard” for causal
+inference, because it balances observed and unobserved
+confounders
+
+However, cannot always randomize so we do observational studies, where we can directly adjust for the observed variables and use indirect methods to adjust for unobserved variables
+
+We want to design observational studies that approximate
+experiments. Always go back to this - if I were to design an experiment for my research question, what would that look like?
+
+### Treatments, Covariates, Outcomes
+It is important to distinguish between:
+
+**Covariates**: Pre-treatment variables, potential confounders
+
+Definition:
+
+Variable X is predetermined with respect to the treatment D (also called “pre-treatment”) if for each individual i , $X_{0i} = X_{1i}$ , ie. the value of $X_i$ does not depend on the value of $w_i$. Such characteristics are called covariates.
+
+**Does not imply that X and W (covariates) are independent**
+
+Predetermined variables are often time invariant (sex, race, etc.), but time invariance is not necessary
+
+**Outcomes**: Variables potentially affected by the treatment
+
+Definition:
+
+Those variables, Y , that are (possibly) not predetermined are called outcomes (for some individual i , $Y_{0i} ̸= Y_{1i}$) In general, one **should not condition on outcomes**, because this may induce bias.
+
+* Randomized Experiment: Well-defined treatment, clear distinction between covariates and outcomes
+
+* Better Observational Study: Well-defined treatment, clear distinction between covariates and outcomes
+
+* Poorer Observational Study: Hard to say when treatment began or what the treatment really is. Distinction between covariates and outcomes is blurred. No baseline survey.
+
+**Before** running a regression, spend time thinking about:
+
+- *Are treated and controls comparable?*
+
+    * Randomized Experiment: Balance table for observables.
+
+    * Better Observational Study: Balance table for observables. Ideally sensitivity analysis for unobservables.
+
+    * Poorer Observational Study: No direct assessment of comparability is presented
+
+
+- *Study Protocol*
+        
+    * Randomized Experiment: Before the experiment starts, a protocol describes the design, outcomes, type of analysis, etc
+
+    * Better Observational Study: Before the analysis of the data starts, a protocol describes the design, outcomes, type of analysis, etc
+
+    * Poorer Observational Study: If we run many regressions, something publishable will turn up sooner or later 
+
+...this last one is pervasive in your work. Do NOT have this mentality. It is not about statistical significance. This is NOT the point. Do not p-hack your way to get the results you want. That is not science, that is statistical manipulation.
+
+I do not care if it is statistically significant if you can't explain your methodology or interpret a coefficient. If you only tell me statistical significance and not much else, you *will* fail the course.
+
+- *Design features we can use to handle unobservables*
+
+    * Design comparisons so that unobservables are likely to be balanced (e.g. “homogeneous” sub-samples, groups where treatment assignment was “accidental”)
+
+    * Difference-in-differences: unobservables may differ, but their effect may not change much in time
+
+    * Instrumental variables: find variables that “randomize” some people into treatment
+
+Sensitivity analysis and bounds
+
+- *Eliminating plausible alternatives to treatment effects*
+
+    * Randomized Experiment: List plausible alternatives and experimental design includes features that shed light on these alternatives (e.g. placebos). Report on potential attrition and non-compliance <- will discuss this later.
+
+    * Better Observational Study: List plausible alternatives and study design includes features that shed light on these alternatives (e.g. multiple control groups, data on potential confounders, etc.)
+
+    * Poorer Observational Study: Alternatives are mentioned in the discussion section
+    
+
+### Example: A&P Chp. 2
+
+Research Question: Are there differences in lifetime earnings?
+
+We want to understand if there are average earning differences between students who attend a Public University (U-Mass) or Elite Private University (Harvard)?
+
+If we compare two people who have the same characteristics, then we have a fair comparison to identify causality.
+
+Need to control for all factors that determine both attendance decisions (selection into treatment) and later earnings.
+
+Instead… they control for characteristics of colleges that students applied and were admitted to.
+
+Two people both apply to same schools and got in, but one decided to go to U-Mass and the other Harvard. 
+
+They both have the ability to get in (could be for different reasons), the only difference was their choice.
+
+Each group is pooled with similar candidates (and 150 different types of groups based on where they applied, where they got admitted, and where they got accepted)
+
+We then can compare the earnings of individuals who were admitted to both, and then compare the earnings of those that went to private school and those that went to public school.
+
+Here is an example of the matching groups they did:
+![Matching](/Users/mkaltenberg/Dropbox (Personal)/Pace/ECO400/Inspiration/Literature/Chpt. 1-6_New C_MM Tables & Figures/Chapter 2_Tables and Figures/MMtbl21.pdf)
+
+So, we can take the average earnings within each group. Then take the average earnings of public vs. private education within that group to get the difference.
+
+|Group |Within Group Avg | Public |Private| Difference|
+|------|-----------------|--------|-------|-----------|
+|  A  |    107           |  110   |  105  |   -5      |
+|  B  |    45            |    60  |  30   |     30    | 
+|  C  |    95            |    95  |       |           |
+|  D  |    75            |        |  75   |           |
+
+Essentially, they run a regression that controls for the selection into treated (the assignment mechanism), which is:
+
+$$lnY_i = \alpha +\beta_1P_i + \sum^{150}\gamma_jGROUP_{ji} + \delta_2lnPI_i + e_i$$
+Without controlling for selection on treated, you have this regression:
+$$lnY_i = \alpha +\beta_1P_i + \delta_2lnPI_i + e_i$$
+
+As you see in this regression, there is a big difference, even controlling for other covariates (parental income, sex, race/ethnicity, Athletics, etc)
+
+![Regression](/Users/mkaltenberg/Dropbox (Personal)/Pace/ECO400/Inspiration/Literature/Chpt. 1-6_New C_MM Tables & Figures/Chapter 2_Tables and Figures/MMtbl22.pdf)
+
+When you don't control for selection, attending a private school increase income by 8.6%, but if you control for selection, the effect of attending a private school on average is 1.3%. Quite a difference!
+
+
+Remember that these are average treatment effects. But, what if the treatment effect size depends on some other covariate, such as income?
+
+A [recent paper](https://www.nber.org/papers/w31492) showed just this. On average, they confirm that there are no average lifetime differences earning differences between elite private university and public university. However, admittance to an Elite university increases income mobility. "Ivy-Plus college instead of the average highly selective public flagship institution increases students’ chances of reaching the top 1% of the earnings distribution by 60%, nearly doubles their chances of attending an elite graduate school, and triples their chances  of working at a prestigious firm."
+
+  
