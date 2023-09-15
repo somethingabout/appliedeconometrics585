@@ -19,15 +19,13 @@ ceodata <- read_excel("/Users/mkaltenberg/Dropbox/Pace/ECO585/R notebooks/Data/e
 Let's see how to rename variables
 ```{r}
 
-#library(tidyverse)
-#ceosalary<- as_tibble(ceodata)
+library(tidyverse)
+ceosalary<- as_tibble(ceodata)
 
 #an example on how to rename variables
-#ceosalaryex <- ceosalary %>% 
-  #rename(
-   # inc = salary,
-    #returnexp = roe
-#    3)
+ceosalaryex <- ceosalary %>% 
+   rename(inc = salary, returnexp = roe)
+
 ```
 Let's estimate a simple regression:
 
@@ -46,15 +44,15 @@ summary_roe
 
 How do you interpret this coefficient?
 
-A one percentage point increase in $r o e$ increases predicted salary by $18.501$, or $18,501
+A one percentage point increase in $roe$ increases predicted salary by $18.501$, or $18,501
 
 Remember that we are trying to understand differences in one unit. A change in one unity in roe is percentage points. Percent change is a ratio - it measures a rate of change. Take this example, the percent of people on poverty in the USA in 2015 was 13.5% and in 2020 it is 11.3%. The the poverty rate between 2015 and 2020 is -2.2 percentage points.  However, the percent change of poverty between 2015 and 2020 is -12.6% ($\frac{13.5-11.3}{13.5}$). The poverty rate decreased by 12.6%. Percent is a number expressed as a fraction of 100. So, the percent of people in poverty is a reflection of $\frac{N. Poverty}{Tot. Population}$.
 
 Take this example: 
 
-What if we measure $r o e$ as a decimal, rather than a percent? Define 
+What if we measure $roe$ as a decimal, rather than a percent? Define 
 
-\begin{equation*}r o e d e c =r o e/100
+\begin{equation*}r o e d e c =\frac{r o e}{100}
 \end{equation*}
 
 What will happen to the intercept, slope, and $R^{2}$ when we regress 
@@ -62,7 +60,7 @@ What will happen to the intercept, slope, and $R^{2}$ when we regress
 \begin{equation*}s a l a r y\quad \text{on}\quad r o e d e c\text{?}
 \end{equation*}
 
-Nothing should happen to the intercept: $r o e d e c =0$ is the same as $r o e =0$. But the slope will increase by 100. The goodness-of-fit should not change, and it does not.
+Nothing should happen to the intercept: $roedec =0$ is the same as $r o e =0$. But the slope will increase by 100. The goodness-of-fit should not change, and it does not.
 
 ```{r}
 ceosal1 <- ceosal1 %>%
@@ -73,7 +71,7 @@ roedec<-lm(salary ~ roedec, data =ceosal1)
 roedec_sum <- summary(roedec)
 roedec_sum
 ```
-Now a one percentage point change in $roe$ is the same as $ \Delta r o e d e c =.01$, and so we get the same effect as before.
+Now a one percentage point change in $roe$ is the same as $\Delta r o e d e c =.01$, and so we get the same effect as before.
 
 What if we measure salary in dollars, rather than thousands of dollars? 
 
@@ -184,7 +182,7 @@ ii. the error term is mean-independent of the regressor (Asmp. 4)
 iii. the error term is distribution around zero.
 (Asmp. 5)
 
-Assumptions 1, 5 and 6 are easier to relax. Assumption 2 is easy to implement and assumption 3 is data dependent, but will be important for panel data.
+Assumptions 1, 5 and 6 are easier to relax. Assumption 3 is easy to implement and Assumption 2 is data dependent, but will be important for panel data.
 Assumption 4 - which we've discussed a lot, is what a lot of econometrics is all about. 
 
 We can write assumptions 1,3,4,5 concisely:
@@ -339,8 +337,8 @@ A simple way to remember this is:
 
 |     | $Corr(x_1,x_2)>0$ | $Corr(x_1,x_2)<0$ |
 |-----|-------------------|--------------------|
-| $Corr(y,x) > 0$| pos bias | neg bias | 
-| $Corr(y,x) > 0$| pos bias | neg bias | 
+| $Corr(y,x) > 0$| upward bias | downward bias | 
+| $Corr(y,x) < 0$| downward bias | upward bias | 
 
 This works well only if we compare a single covariate model to a model with one additional X. In practice, there may be multiple omitted variables at work, each possibly biasing the true coefficient of $X_1$ in different directions. Theoretically, we can even envision a case where there are two omitted variables in opposing directions with offsetting effects!
 
@@ -360,7 +358,7 @@ library(wooldridge)
 Load in the education data (you can load data into R from the package directly)
 ```{r}
 wagedata <-data("wage1")
-biased <- lm(lwage ~ educ+tenure, data= wage1)
+biased <- lm(lwage ~ educ +tenure, data= wage1)
 summary(biased)
 
 less_biased <-lm(lwage ~ educ+exper+tenure, data= wage1)

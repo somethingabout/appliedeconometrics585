@@ -1,6 +1,7 @@
 ---
 title: "Logit/Probit Models"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -10,7 +11,7 @@ output:
 ```
 So... you've got a binary dependent variable. 
 
-We've talked about LPM in our OLS discussion. So, I won't review it here, but I will say that LPM can be a great model to use - so logit/probit doesn't have to be your default. What's better is to show the LPM model along with logit probit. And frankly, I always do LPM first to get an intuitive basic understanding of what's going on. 
+We've talked about LPM in our OLS discussion. So, I won't review it here, but I will say` that LPM can be a great model to use - so logit/probit doesn't have to be your default. What's better is to show the LPM model along with logit probit. And frankly, I always do LPM first to get an intuitive basic understanding of what's going on. 
 
 ### Pros/Cons LPM
 Pro: Using a linear model for a binary outcome is convenient because estimation is easy and so is interpretation. 
@@ -127,7 +128,7 @@ Then the partial effect is
 
 where 
 
-$$ g (z) =\exp  (z)/[1 +\exp (z)]^{2}$$ for logit
+$$g (z) =\exp  (z)/[1 +\exp (z)]^{2}$$ for logit
 
 and, because $g (z) >0$, $\beta _{j}$ gives the direction of the partial effect. But its magnitude depends on $g (\mathbf{x} \mathbf{\beta })\text{.}$ 
 
@@ -149,12 +150,14 @@ In any case, we would like the magnitude of the effect.
 
  Since these partial effects wrap a linear function, we use the chain rule ($\frac{dy}{dx} = \frac{dy}{du} \frac{du}{dx}$). 
 
-**Simple Probit**: $E[Y|X]= \text{Pr}(Y=1|X) = \Phi(\beta_0 + \beta_1 X_i)$ \\
+**Simple Probit**: $E[Y|X]= \text{Pr}(Y=1|X) = \Phi(\beta_0 + \beta_1 X_i)$ 
+
 The marginal effect is $ME(X_i) = \beta_1 \times \phi(\beta_0 + \beta_1 X_i)$ and thus clearly varies with every $X_i$.
 
 Note that the derivative of the normal cdf is $\Phi'(u) = \phi(u)$
 
-**Simple Logit**: $E[Y|X]= \text{Pr}(Y=1|X) = \Lambda(\beta_0 + \beta_1 X_i)$ \\
+**Simple Logit**: $E[Y|X]= \text{Pr}(Y=1|X) = \Lambda(\beta_0 + \beta_1 X_i)$ 
+
 The marginal effect is $ME(X_i) = \beta_1 \times [\Lambda(\beta_0 + \beta_1 X_i)\Lambda(-\beta_0 - \beta_1 X_i)]$ or $ME(X_i) = \beta_1 \times [\Lambda(\beta_0 + \beta_1 X_i) - (1 - \Lambda(\beta_0 + \beta_1 X_i))]$  and thus clearly varies with every $X_i$.
 
 Note that the derivative of the logistic cdf ($\Lambda(u)=1/(1+\exp(-u))$ is $\Lambda'(u) = \Lambda(u)\times (1 - \Lambda(u))$ but by symmetry of the cdf: $1 - \Lambda(u) = \Lambda(-u)$. 
@@ -168,7 +171,11 @@ The estimated PEA for a continuous variable is:
 
 As discussed earlier, putting in averages for discrete covariates might not be especially interesting. 
 
-When $\mathbf{x}$ includes nonlinear functions, such as $a g e^{2}$, probably makes more sense to use $(\overline{a g e})^{2}$ rather than average $a g e_{i}^{2}$. 
+When $x$ includes nonlinear functions, such as $age^{2}$, probably makes more sense to use $(\overline{age})^{2}$ rather than average $age_{i}^{2}$. 
+
+For example, you want the partial effect at the average of age where you have a non-linear function, $\beta_1 age_i + \beta_2 age_i^2$
+If the average
+$\beta_1 age_i + \beta_2 age_i^2$
 
 The APE has more appeal, as we are averaging partial effects for actual units: 
 
@@ -211,13 +218,12 @@ The APE estimates measures the difference in outcome probabilities for each pers
 
 For example, let $y$ be an employment indicator and $x_{k}$ be participation in a job training program. 
 
-With a Probit or Logit model, we are estimating the employment probability for each individual in both states of the world, regardless of whether the individual actually participated in the training program. 
-
+With a probit or logit model, we are estimating the employment probability for each individual in both states of the world, regardless of whether the individual actually participated in the training program. 
 Averaging the difference in estimated probabilities across individuals gives us the average treatment effect.  
 
 How it works: 
 
-We first estimate a logit or probit model that includes whether the individual recieved a grant along with controls 
+We first estimate a logit or probit model that includes whether the individual received a grant along with controls 
 
 We then for each individual compute the estimated difference in probabilities of being employed uner the two scenarios that the person received a job training grant or did not.
 
@@ -232,7 +238,7 @@ For a discrete $x_{K}$, the estimated PEA is
 
 Again, this might correspond to a weird population unit, or might not be representative of the population - so, generally, not very well advised. 
 
-Average treatment effect is much more useful (and is the same as the averate partial effect)
+Average treatment effect is much more useful (and is the same as the average partial effect)
 
 
 ##### Reporting the Results
@@ -254,7 +260,7 @@ Let's try it.
 
 Married Women's Labor Force Participation (MROZ.DTA)
 
-The variable $i n l f$ is one if a woman worked for a wage during a certain year, and zero if not. We estimate a linear probability model to see the effects of variables on the probability of being in the labor force.
+The variable $inlf$ is one if a woman worked for a wage during a certain year, and zero if not. We estimate a linear probability model to see the effects of variables on the probability of being in the labor force.
 
 The package we are using is called glm.
 
@@ -268,7 +274,7 @@ library(car)
 library(AER)
 
 #recall this is just your ordinary ols estimation
-lpm <- lm(inlf ~nwifeinc +educ+ exper+ I(exper*exper)+age+kidslt6+kidsge6, data =mroz )
+lpm <- lm(inlf ~ nwifeinc +educ+ exper+ I(exper*exper)+age+kidslt6+kidsge6, data =mroz )
 
 lpm_robust <-coeftest(lpm, vcov = vcovHC, type = "HC0")
 lpm_robust
@@ -279,8 +285,7 @@ Compare to Probit
 
 probit <- glm(inlf ~nwifeinc +educ+ exper+ I(exper*exper)+age+kidslt6+kidsge6, data =mroz, family = binomial(link = "probit"))
 
-probit_robust <- coeftest(probit, vcov = vcovHC, type = "HC0")
-probit_robust
+summary(probit)
 ```
 And we need to get the marginal effects!
 
@@ -288,8 +293,7 @@ Logit:
 ```{r}
 logit <- glm(inlf ~nwifeinc +educ+ exper+ I(exper*exper)+age+kidslt6+kidsge6, data =mroz , family = "binomial")
 
-logit_robust <- coeftest(logit, vcov = vcovHC, type = "HC0")
-logit_robust
+summary(logit)
 ```
 
 Let's check out the PEA and APE
@@ -326,7 +330,7 @@ margins(probit, at = list(educ = c(mean(mroz$educ, na.rm=TRUE))), variables = "e
 library(sjPlot)
 library(ggplot2)
 
-#here's age
+#here's educ
 plot_model(logit, type = "pred", terms = "educ")
 plot_model(probit, type = "pred", terms = "educ")
 
