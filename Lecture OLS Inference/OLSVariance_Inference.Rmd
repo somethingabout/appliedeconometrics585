@@ -20,7 +20,7 @@ output:
  We won't ever have an $R^2=1$ because of our perfect collinearity assumption we defined earlier.
  
  From these two things, we can calculate the sampling variance of our Slope Estimators is:
- $Var(\hat{\beta_j}) = \frac{\sigma^2}{SST_j(1-R^2_j)})$
+ $Var(\hat{\beta_j}) = \frac{\sigma^2}{SST_j(1-R^2_j)}$
 
 Note that  $R^2_j$ is not the $R^2$ of the regression! It is the $R^2_j$ from regressing $x_j$ on all other independent variables (ie $x_j$ becomes the dependent variable and the other xs are the independent vars) 
 
@@ -355,18 +355,18 @@ $lsalary = β_0 + β_1years + β_2gamesyr + u$
 
 We want to see how the fit deteroriates as we remove the three variables. We use, initially, the sum of squared residuals from the two regressions.
 
--  Let $SSR_ur$ denote the SSR from the unrestricted model. Note that, in this example, $df_ur$ = 330 − 6 = 324. Let $SSR_r$ be the SSR from the restricted model. So $df_ur$ =330−3=327.
+-  Let $SSR_{ur}$ denote the SSR from the unrestricted model. Note that, in this example, $df_{ur}$ = 330 − 6 = 324. Let $SSR_r$ be the SSR from the restricted model. So $df_{ur}$ =330−3=327.
 
-- It is an algebraic fact that the SSR must increase (or, at least, not fall) when explanatory variables are dropped. So $SSR_r ≥ SSR_ur$
+- It is an algebraic fact that the SSR must increase (or, at least, not fall) when explanatory variables are dropped. So $SSR_r ≥ SSR_{ur}$
 
 The test statistic we use essentially asks: does the SSR increase proportionately by enough to conclude the restrictions under H0 are false?
 
 - In the general model
 $y=β_0 +β_1x_1 +...+β_kx_k +u$
 we want to test that the last q variables can be excluded: 
-$H_0 : β_k−q+1 = 0,...,β_k = 0$
+$H_0 : β_{k−q+1} = 0,...,β_k = 0$
 
-We get SSRur from estimating the full model.
+We get $SSR_{ur}$ from estimating the full model.
 
 The restricted model we estimate to get $SSR_r$ drops the last q variables (q exclusion restrictions):
 $y=β_0 +β_1x_1 +...+β_{k−q}x_{k−q} +u$
@@ -378,7 +378,7 @@ where q is the number of exclusion restrictions imposed under the null (q = 3 in
 
 q = numerator $df = df_r − df_{ur}$ 
 
-n−k−1=denominator $df =df_ur$
+n−k−1=denominator $df =df_{ur}$
 
 The denominator of the F statistic, $SSR_{ur}/df_{ur}$, is the unbiased estimator of $\sigma^2$ from the unrestricted model.
 
@@ -432,7 +432,7 @@ $SSR_R = (1-R^2)SST$
 $SSR_{ur} =(1-R^2_{ur})SST$
 
 We can rewrite this:
-F = \frac{R^2_{ur}-R^2_{r}/q}{(1-R^2_{ur})/(n-k-1)}
+$$F = \frac{R^2_{ur}-R^2_{r}/q}{(1-R^2_{ur})/(n-k-1)}$$
 We know that $R^2_{ur} \geq R^2_r$ which insures that the $F \geq0$
 
 
