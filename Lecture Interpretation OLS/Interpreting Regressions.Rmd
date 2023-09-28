@@ -273,6 +273,7 @@ library("dplyr")
 
 data(attend)
 # If you want to standardize your own values, you can do so as such. I am standardizing GPA and ACT in this case and creating a NEW dataframe. This will replace the existing columns - so be aware of that in this method!
+
 attendstd <- attend %>% mutate_at(c('priGPA', 'ACT'), ~(scale(.) %>% as.vector))
 
 
@@ -280,6 +281,8 @@ attendstd <- attend %>% mutate_at(c('priGPA', 'ACT'), ~(scale(.) %>% as.vector))
 attend_std <- lm(stndfnl ~ missed+priGPA+ACT, data = attendstd)
 
 summary(attend_std)
+
+## add how to standardize without replacing vectors
 
 
 ```
@@ -520,7 +523,7 @@ so that the effect of $x_1$ depends on $x_2$ unless $\beta_3 = 0$:
 \frac{\Delta y}{\Delta x_2} =\beta_2 + \beta_3x_1
 \end{equation}
 
-The null hypothesis $H_0 : β_3 = 0$ is the same as saying the partial effects are constant. It should be tested. If it cannot be rejected at a small significance level (smaller than 5%), it is not worth complicating the model.
+The null hypothesis $H_0 : \beta_3 = 0$ is the same as saying the partial effects are constant. It should be tested. If it cannot be rejected at a small significance level (smaller than 5%), it is not worth complicating the model.
 
 It is easy to get confused in models with interactions. From
 
