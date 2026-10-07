@@ -194,7 +194,7 @@ E(Y|X =x)
 
 Sometimes, you'll see it called, the *conditional expectation function*. For a continuous variable it's this:
 \begin{equation}
-E[Y|X =x] = \int tf_y (t|X =x) \, dt
+E[Y|X =x] = \int xf_y (x|X =x) \, dx
 \end{equation}
 
 It is the weighted average of possible values of Y.  It tells us how the expected value of Y varies with x.
@@ -499,7 +499,7 @@ Each group is pooled with similar candidates (and 150 different types of groups 
 We then can compare the earnings of individuals who were admitted to both, and then compare the earnings of those that went to private school and those that went to public school.
 
 Here is an example of the matching groups they did:
-![Matching](/Users/mkaltenberg/Dropbox (Personal)/Pace/ECO400/Inspiration/Literature/Chpt. 1-6_New C_MM Tables & Figures/Chapter 2_Tables and Figures/MMtbl21.pdf)
+![Matching](/Users/mkaltenberg/Library/CloudStorage/Dropbox/Pace/ECO400/Inspiration/Literature/Chpt. 1-6_New C_MM Tables & Figures/Chapter 2_Tables and Figures/MMFig21.pdf)
 
 So, we can take the average earnings within each group. Then take the average earnings of public vs. private education within that group to get the difference.
 
@@ -518,7 +518,7 @@ $$lnY_i = \alpha +\beta_1P_i + \delta_2lnPI_i + e_i$$
 
 As you see in this regression, there is a big difference, even controlling for other covariates (parental income, sex, race/ethnicity, Athletics, etc)
 
-![Regression](/Users/mkaltenberg/Dropbox (Personal)/Pace/ECO400/Inspiration/Literature/Chpt. 1-6_New C_MM Tables & Figures/Chapter 2_Tables and Figures/MMtbl22.pdf)
+![Regression](/Users/mkaltenberg/Library/CloudStorage/Dropbox/Pace/ECO400/Inspiration/Literature/Chpt. 1-6_New C_MM Tables & Figures/Chapter 2_Tables and Figures/MMFig22.pdf)
 
 When you don't control for selection, attending a private school increase income by 8.6%, but if you control for selection, the effect of attending a private school on average is 1.3%. Quite a difference!
 

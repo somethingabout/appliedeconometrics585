@@ -375,12 +375,15 @@ should increase the first-stage F)
 
 ### Where might instrumental variables come from?
 
+## Study example
 Randomized eligibility can work well as an IV for participation in a program. So $x_{i} =1$ if person actually participates. $z_{i} =1$ if the person was made eligible. 
 
  In the Tennessee STAR program, some students were randomly made eligible for smaller class sizes. So $x_{i}$ can be the actual class size, $z_{i} =1$ if student $i$ was made eligible for a small class size.
 
  Caution: Just because a variable is randomized does not make it exogenous to a model. Economic agents can change their behavior!
 
+
+#### R Example
 
  Example due to Angrist and Evans (1998, \textit{American Economic Review}). Weekly hours equation 
 
@@ -474,12 +477,16 @@ educ and nearc4 are strongly enough related: being near a 4-year college increas
 ```{r, results='asis'}
 library(stargazer)
 card_iv <-ivreg(lwage ~ educ | nearc4 , data = card)
-card_iv <- robust.se(card_iv)
+#card_iv <- robust.se(card_iv)
 
 card_ols <-lm(lwage ~ educ, data = card)
 
 stargazer(card_ols, card_iv, type = "html",
            results = 'asis',message = FALSE, echo = FALSE, notes.append = FALSE, header = FALSE)
+```
+```{r}
+card_iv <-ivreg(lwage ~ educ | nearc4 , data = card)
+summary(card_iv)
 ```
 
 Note that the list of exogenous variables in the lwage equation is empty.
@@ -542,10 +549,13 @@ So nearc4 is still partially correlated with educ and can be used as an IV. (Par
 ```{r, results='asis'}
 card_iv_full <-ivreg(lwage ~ educ+ exper+ expersq+ black+ smsa+ south+ smsa66+ reg662:reg669 | nearc4 + exper+ expersq+ black+ smsa+ south+ smsa66+ reg662:reg669, data = card)
 
-coeftest(card_iv_full, vcov = vcovHC(card_iv_full, type="HC1"))
+#coeftest(card_iv_full, vcov = vcovHC(card_iv_full, type="HC1"))
 
-stargazer(card_ols_full, card_iv_full, type = "html",
-           results = 'asis',message = FALSE, echo = FALSE, notes.append = FALSE, header = FALSE)
+summary(card_ols_full)
+summary(card_iv_full)
+
+#stargazer(card_ols_full, card_iv_full, type = "html",
+ #          results = 'asis',message = FALSE, echo = FALSE, notes.append = FALSE, header = FALSE)
 
 
 ```

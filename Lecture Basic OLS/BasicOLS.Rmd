@@ -7,14 +7,31 @@ A good reference on basic econometrics with R can be found on [this](https://www
 We'll be importing excel datasets, so will need to install a package to do so:
 
 ```{r}
-#install.packages("readxl")
+#install.packages("tidyverse")
+install.packages("readxl")
 ```
 
 Now let's load the library and import the dataset
 ```{r}
 library("readxl")
 ceodata <- read_excel("/Users/mkaltenberg/Dropbox/Pace/ECO585/R notebooks/Data/excelfiles/ceosal1.xls", col_names = c("salary", "pcsalary", "sales", "roe","pcroe", "ros","indus","finance","consprod","utility","lsalary", "lsales"))
+
 ```
+
+
+
+```{r}
+getwd()
+
+setwd("/Users/mkaltenberg/Library/CloudStorage/Dropbox/Pace/ECO585/R notebooks/Data/")
+
+ceodata <-read_excel("/Users/mkaltenberg/Library/CloudStorage/Dropbox/Pace/ECO585/R notebooks/Data/excelfiles/401ksubs.xls")
+
+
+```
+
+
+
 
 Let's see how to rename variables
 ```{r}
@@ -38,8 +55,10 @@ Let's run that regression in R:
 library(wooldridge)
 data("ceosal1")
 roe_reg <- lm(salary ~ roe, data = ceosal1)
+roe_reg
 summary_roe <-summary(roe_reg)
 summary_roe
+
 ```
 
 How do you interpret this coefficient?
@@ -63,8 +82,7 @@ What will happen to the intercept, slope, and $R^{2}$ when we regress
 Nothing should happen to the intercept: $roedec =0$ is the same as $r o e =0$. But the slope will increase by 100. The goodness-of-fit should not change, and it does not.
 
 ```{r}
-ceosal1 <- ceosal1 %>%
-  mutate(roedec= roe/100)
+ceosal1 <- mutate(ceosal1, roedec= roe/100)
 
 roedec<-lm(salary ~ roedec, data =ceosal1)
 
@@ -269,13 +287,19 @@ u = 6*rnorm(250)
 y = 3+2*x+u
 lm(y~x)
 ```
-You can see that the values are note exact, but they are close to expected values $\beta_1=2, \beta_0=3$. If we average these values after many random samples, we should get the true population estimate.
+You can see that the values are not exact, but they are close to expected values $\beta_1=2, \beta_0=3$. If we average these values after many random samples, we should get the true population estimate.
 
 We won't ever know the true population value, but we hope that our sample is “typical” and produces a slope estimate close to $\beta_1$, but we can never know. 
 
 
 ### Omitted Variable Bias
 There are many ways to break assumption 4, omitted variable bias is just one example - so, let's dive into this particular violation of assumption 4.
+
+$$ y = \beta_0 + \hat{\beta}_1}X_1+ \epsilon $$
+
+$$ y = \beta_0 + \hat{\beta}_1}X_1 + \beta_2X_2 $$
+
+
 
 #### Theory 
 
@@ -337,8 +361,8 @@ A simple way to remember this is:
 
 |     | $Corr(x_1,x_2)>0$ | $Corr(x_1,x_2)<0$ |
 |-----|-------------------|--------------------|
-| $Corr(y,x) > 0$| upward bias | downward bias | 
-| $Corr(y,x) < 0$| downward bias | upward bias | 
+| $Corr(y,x_2) > 0$| upward bias | downward bias | 
+| $Corr(y,x_2) < 0$| downward bias | upward bias | 
 
 This works well only if we compare a single covariate model to a model with one additional X. In practice, there may be multiple omitted variables at work, each possibly biasing the true coefficient of $X_1$ in different directions. Theoretically, we can even envision a case where there are two omitted variables in opposing directions with offsetting effects!
 
@@ -358,10 +382,10 @@ library(wooldridge)
 Load in the education data (you can load data into R from the package directly)
 ```{r}
 wagedata <-data("wage1")
-biased <- lm(lwage ~ educ +tenure, data= wage1)
+biased <- lm(lwage ~ educ , data= wage1)
 summary(biased)
 
-less_biased <-lm(lwage ~ educ+exper+tenure, data= wage1)
+less_biased <-lm(lwage ~ educ+exper, data= wage1)
 summary(less_biased)
 ```
 

@@ -202,7 +202,7 @@ We do not test hypotheses about the estimate! We know what it is once we collect
 
 -  We can also say $\beta_j$ is “statistically significant” when we can reject $H_0:\beta_j =0$.
 
-- If we do not reject H0 (against any alternative), it is better to say “we fail to reject H0” as opposed to “we accept H0,” which is somewhat common. 
+    - If we do not reject H0 (against any alternative), it is better to say “we fail to reject H0” as opposed to “we accept H0,” which is somewhat common. 
 
     - The reason is that many null hypotheses cannot be rejected in any application. For example, if I have $\beta_j = .75$ and $se(\beta_j) = .25$, I do not say that I “accept $H_0 : \beta_j = 1$” I fail to reject because the t statistic is (.75 − 1)/.25 = −1. But the t statistic for $H_0 : \beta_j = .5$ is (.75 − .5)/.25 = 1, so I cannot reject $H_0 : \beta_j = .5$, either.
 
@@ -273,7 +273,7 @@ A simple rule-of-thumb is useful for constructing a CI given the estimate and it
 
 For, say, df ≥ 60, an approximate 95% CI is:
 
-$\hat{β_j} ± 2se(\hat{\beta_j})$ or $[\hat{β_j}−2se(\hat{\beta_j}), \hat{\beta_j} + 2se(\hat{\beta_j})]$
+$\hat{/beta_j} ± 2se(\hat{\beta_j})$ or $[\hat{\beta_j}−2se(\hat{\beta_j}), \hat{\beta_j} + 2se(\hat{\beta_j})]$
 
 That is, subtract and add twice the standard error to the estimate. (In the case
 of the standard normal, the 2 becomes 1.96.)
@@ -320,7 +320,8 @@ FYI: an example of exclusion restrictions: The three variables, bavg, hrunsyr, a
 #install.pacakge(lme4)
 #install.packages(wooldridge)
 
-library("Matrix", "lme4", "wooldridge")
+library("Matrix", "lme4")
+library("wooldridge")
 data(mlb1)
 mlb <-lm(lsalary ~years + gamesyr+bavg + hrunsyr+rbisyr, data = mlb1)
 summary(mlb)
@@ -347,9 +348,9 @@ Because the individual coefficients, especially on hrunsyr and rbisyr, are impre
 
 The original model, containing all variables, is the unrestricted model: 
 
-$lsalary = β_0 + β_1years + β_2gamesyr + _β3bavg +β_4hrunsyr + β_5rbisyr + u$
+$lsalary = β_0 + β_1years + β_2gamesyr + β_3bavg +β_4hrunsyr + β_5rbisyr + u$
 
-When we impose $H_0 :β_3 =0, β_4 =0,β_5 =0$ ,we get the restricted model:
+When we impose $H_0 :β_3 =0,β_4 =0,β_5 =0$ ,we get the restricted model:
 $lsalary = β_0 + β_1years + β_2gamesyr + u$
 
 

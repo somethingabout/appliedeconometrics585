@@ -11,7 +11,7 @@ A great resource that is R for Data Science that is freely available online [her
 ### CRAN & Mirrors 
 R codes are stored in a series of servers across the world through Comprehensive R Archive Network (CRAN) - all of R related information is stored separately in each server (with the same exact information)
 
-So, likely, the first thing you'll need to do is to use a mirror near you - a list of mirrors can be found here
+So, likely, the first thing you'll need to do is to use a mirror near you - a list of mirrors can be found [here](https://cran.r-project.org/mirrors.html)
 
 Once you set it, it's done. No need to go back to this step unless for some reason you want to pull from a different server (maybe if you move, one that is closer to you)
 
@@ -30,6 +30,8 @@ But, just to see the importing of a package, let's try it here.
 
 ```{r}
 library(dplyr)
+library(plm)
+
 ```
 
 
@@ -56,7 +58,7 @@ getwd()
 ```
 
 ```{r}
-setwd('/Users/mkaltenberg/Dropbox (Personal)/Pace/ECO585/R notebooks')
+setwd('/Users/mkaltenberg/Documents/GitHub/appliedeconometrics585/Lecture Intro to R and Prob review')
 ```
 
 ### Assignments
@@ -106,10 +108,10 @@ To save a csv file you use write.csv(df, path_to_csv_file)
 ```{r}
 setwd('/Users/mkaltenberg/Documents/GitHub/Data_Analysis_Python_R/Becoming a Viz Kid/')
 
-read.csv("/Users/mkaltenberg/Documents/GitHub/Data_Analysis_Python_R/Becoming a Viz Kid/job-automation-probability.csv")
-
 read.csv('job-automation-probability.csv')
 #Don't forget to assign it!
+
+read.csv("/Users/mkaltenberg/Documents/GitHub/Data_Analysis_Python_R/Becoming a Viz Kid/job-automation-probability.csv")
 
 jobs <- read.csv('job-automation-probability.csv')
 ```
@@ -127,7 +129,7 @@ you can always ask for documentation, but that function is: help()
 
 ```{r}
 help(seq)
-help('read.csv')
+
 ```
 For packages, there is also a summary about the package and what it does with vignette
 

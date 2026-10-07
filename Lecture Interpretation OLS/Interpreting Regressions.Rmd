@@ -131,7 +131,7 @@ cigsbeta
 faminc <- exp(loglin$coefficients[3])-1
 faminc
 ```
-For every additional dollar of family income leads to an increase in the baby's birth weight by .08%  (0.0008*100)
+For every additional $1000 of family income leads to an increase in the baby's birth weight by .08%  (0.0008*100)
 
 
 #### Log-log
@@ -145,10 +145,11 @@ The elasticity is free of units of $bwght$ and $faminc$.
 
 We can also see this algebraically:
 
-Take a small shift in X $$$$\log(bwght+ \Delta bwght) =\beta _{0} +\beta _{1} \log(faminc + \Delta faminc) +u$$ $$
+Take a small shift in X $$\log(bwght+ \Delta bwght) =\beta _{0} +\beta _{1} \log(faminc + \Delta faminc) +u$$ 
 
 then subtract $\log(bwght) =\beta _{0} +\beta _{1} \log(faminc) +u$ and you'll get:
 $$\Delta bwght = \beta_1(\Delta lnfaminc) $$
+
 Solve for $\beta_1$:
 $$\beta_1 = \frac{\Delta lnbwght}{\Delta lnbwght} \approxeq \frac{\Delta bwght /bwght}{\Delta faminc/ faminc}$$
 For a 1% unit increase (decrease) in X, we have $\Delta𝑋=0.01(−0.01)$, and we expect a $\beta_1\%$ increase (decrease) in Y
@@ -221,9 +222,9 @@ sum_linlog <- summary(linlog)
 sum_linlog
 ```
 
-For every additional $1000 in family income, birth weight will increase by .018 % (1.8/100)
+A 1% increase in family income leads to a .018 (1.8/100) increase in birthweight (oz).
 
-or rather, for every $10,000 increase in birth weight is associated with 18 ounces ((1.8/100)*1000)
+or rather, for every 10% increase in birth weight is associated with 18 ounces ((1.8/100)*1000)
 
 Let's compare our estimates of the models
 
@@ -278,7 +279,7 @@ attendstd <- attend %>% mutate_at(c('priGPA', 'ACT'), ~(scale(.) %>% as.vector))
 
 
 
-attend_std <- lm(stndfnl ~ missed+priGPA+ACT, data = attendstd)
+attend_std <- lm(final ~ missed+priGPA+ACT, data = attend)
 
 summary(attend_std)
 
@@ -573,11 +574,15 @@ Let's see it:
 First model the interaction is educ*IQ
 
 ```{r}
-wage_lin <- lm(log(wage) ~educ + IQ  , data = wage2)
+wage_lin <- lm(log(wage) ~educ + IQ , data = wage2)
 summary(wage_lin)
 
-wage_int <- lm(log(wage) ~educ + IQ + educ*IQ , data = wage2)
+wage_int <- lm(log(wage) ~educ + IQ + educ:IQ , data = wage2)
 summary(wage_int)
+
+linearHypothesis(wage_int, c("IQ","educ:IQ"))
+
+
 ```
 Now, let's see the regression with mean adjusted values.
 

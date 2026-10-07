@@ -149,7 +149,7 @@ library(wooldridge)
 data(crime2)
 
 summary(lm(crmrte ~ d87 + unem, crime2))
-
+max(crime2$unem)
 ```
 
 First-Difference regression
@@ -356,7 +356,7 @@ Note that the variable measuring difficulty of the course load, $c r s g p a_{i 
 ```{r}
 data("gpa3")
 
-lm(trmgpa~ spring+season+crsgpa+sat+hsperc, gpa3)
+summary(lm(trmgpa~ spring+season+crsgpa+sat+hsperc, gpa3))
 
 # we will use the package plm for panel data
 plm(trmgpa~ spring+season+crsgpa+sat+hsperc, data = gpa3, index = c("id", "term"), model = "pooling")

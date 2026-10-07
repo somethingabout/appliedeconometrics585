@@ -1,9 +1,9 @@
 ---
 title: "Logit/Probit Models"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 ```{r}
@@ -62,13 +62,58 @@ The estimation method for the $\beta _{j}$ is maximum likelihood.
 
 T-tests and F-tests work the same.
 
-### MLE Theory (again!)
+### MLE Theory \& Estimation
+
+
+The PDF (probability distribution function) of $Y_i$ given $X_i$ is known *except* for only three parameters, $\beta_0, \beta_1, \sigma^2_u$:
+
+\begin{equation}
+f_{Y_i|X_i}(y) = \frac{1}{\sqrt{2\pi\sigma^2_u}}exp(-\frac{1}{2\sigma^2_u}(Y_i - \beta_0 + \beta_1X_i)^2)
+\end{equation}
+
+With the assumption of normality, we can use maximum liklihood estimation.
+
+The basic idea is that we choose parameter estimates to maximize  a measure of the likeliness of the sample outcomes - this is called the liklihood function.  ML estimators of $\beta_0$ and $\beta_1$ are those values that $\hat{\beta_0}$ and $\hat{\beta_1}$ can best describe the full distribution of the data.
+
+The liklihood function is the joint probability function of $Y_1$ conditional on $X_1$.  
+
+It's *way* easier to deal with the log of some function - which we call a logliklihood function, where all we do is replace the hypothetical values and take the logs. Think about that exponential function in the pdf. If we take the log of an exponential - that makes the form easier to deal with (recall $y = b^x = log_b(y) = x$)
+
+Fortunately, ML estimators is equivalent to maximizing the loglikelihood function.
+
+You essentially set the derivatives of the logliklihood function equal to zero and solve for first-order conditions. This doesn't provide a closed form formulate, and usually we use numerical methods that guess a number, solve for it and then take the second derivative to see if the slope is positive or negative and once it's close to zero, you've found a solution.  Hence, MLE has successive iterations.
+
+What is nice about using MLE is that the variance is unbiased!  When we use OLS - the variance is not unbiased. No where did we make that a requirement with our as
+sumption (indeed, $\beta_1$ is unbiased).  So, MLE is incredibly *efficient* and our issue with multi-collinearity dissappears. 
+
+The properties of MLE are asymptotic - they are approximate in real-world samples - and as N gets larger, we know it will approximate to the true value.
+
+This is a different *estimation* method. The model can be the same for OLS and MLE, but the estimation method is different. OLS minimized the sum of squares. MLE maximizes the liklihood funciton.
+
+As a result, there is not $R^2$ in MLE. Instead, we use log-liklihood ratios - and that is basically an F-test! 
+
+So, here we are full-circle. The logliklihood ratio is:
+
+$(\frac{SSR_u}{SSR_R})^{-n/2}$
+
+where we compare our restricted model to our unrestricted model.
+
+Note: this points out how estimation models that may have the same assumptions can have different properties - particularly, MLE is efficient because we can accurately estimate the variance of our estimator. 
+
+Why don't we just use this all the time? Because the assumption of normality is too strict and we rarely it in the data wild. 
+
+To Summarize:
 
   * ML maximises a measure of the likeliness of the sample outcomes called the likelihood function.
+  
   * ML picks the values of the parameters that best describe the distribution of the observed data.
+  
   * The sample mean is a ML estimator (MLE).
+  
   * Other estimation methods exist, but if the assumptions are satisfied, then the MLE has the smallest variance (most efficient, no other estimator is better). 
+  
   * We maximize the (log) likelihood function or minimize the negative log likelihood. Probabilities are very small numbers! Logs of probabilities are large negative numbers!
+  
   * Parameter values are typically found using iterative Newton-Raphson steps based on numerical derivatives.
 
 Given an independent and identically distributed (i.i.d.) sample, the joint density function is
@@ -81,6 +126,9 @@ All results are asymptotic:
     * Consistency of $\hat{\boldsymbol\beta}$ is only guaranteed with $N \rightarrow \infty$. 
     * $E[\hat{\boldsymbol\beta}] = \boldsymbol\beta$ may not be true for finite $N$.
     * $var(\hat{\boldsymbol\beta})$ is asymptotic. May be biased in small samples.
+    
+    
+    
     
 #### Maximization with gradient methods
 R uses Newton-Graphson optimization technique - but, you can use other methods that you might want to impose when your model can't converge. Entire classes can be devoted to proper maximization techniques, which are incredibly important for non-linear in parameter estimation techniques (what we are doing now). 
@@ -105,7 +153,32 @@ We still use t-tests and F-tests (Wald tests), but they are essentially quadrati
 
 Likelihood ratio tests are more precise.
 
-##### Liklihood ratio     
+##### Liklihood ratio 
+
+AIC
+
+$$= -2(lnL) + 2k$$
+where L is the value of the likelihood, k is the number of estimated parameters
+
+- it inclues penalty term for adding more independent variables
+
+logliklihood function
+$$l = \frac{-n}{2}[1+ log(2\pi)+log\frac{\sum{\mu^2}}{n}]$$
+
+BIC
+$$= -2(lnL) + 2(lnN)k$$
+where L is the value of the likelihood, N is the number of obs, k is the number of estimated parameters
+
+### Odds Ratios
+
+The output in the regression that is displayed to you are log odds ratios. To get the odds ratio, you just exponentiate the coefficients.
+
+This is the relative odds of the occurrence of the outcome, given exposure to the variable.  If it's great than 1, higher odds, lower than 1, lower odds.
+
+https://numiqo.com/tutorial/odds-ratio-logistic-regression 
+
+It's much easier for us to understand the marginal effect of one unit and to do that, you need to take the first derivative with respect to your variable of interest! This is true for ANY regression. But because logit and probit are non-linear functional forms, the one unit change depends on the value. 
+
 
 
 
@@ -274,7 +347,7 @@ library(car)
 library(AER)
 
 #recall this is just your ordinary ols estimation
-lpm <- lm(inlf ~ nwifeinc +educ+ exper+ I(exper*exper)+age+kidslt6+kidsge6, data =mroz )
+lpm <- lm(inlf ~ nwifeinc +exper+ I(exper*exper)+motheduc+age+kidslt6+kidsge6, data =mroz )
 
 lpm_robust <-coeftest(lpm, vcov = vcovHC, type = "HC0")
 lpm_robust
@@ -283,7 +356,7 @@ lpm_robust
 Compare to Probit
 ```{r}
 
-probit <- glm(inlf ~nwifeinc +educ+ exper+ I(exper*exper)+age+kidslt6+kidsge6, data =mroz, family = binomial(link = "probit"))
+probit <- glm(inlf ~nwifeinc +exper+ I(exper*exper)+motheduc+age+kidslt6+kidsge6, data =mroz, family = binomial(link = "probit"))
 
 summary(probit)
 ```
@@ -291,7 +364,7 @@ And we need to get the marginal effects!
 
 Logit:
 ```{r}
-logit <- glm(inlf ~nwifeinc +educ+ exper+ I(exper*exper)+age+kidslt6+kidsge6, data =mroz , family = "binomial")
+logit <- glm(inlf ~nwifeinc +exper+ I(exper*exper)+motheduc+age+kidslt6+kidsge6, data =mroz , family = "binomial")
 
 summary(logit)
 ```
@@ -318,9 +391,9 @@ summary(probit_m)
 
 lpm_robust
 
-margins(logit, at = list(educ = c(mean(mroz$educ, na.rm=TRUE))), variables = "educ")
+margins(logit, at = list(motheduc = c(mean(mroz$motheduc, na.rm=TRUE))), variables = "motheduc")
 
-margins(probit, at = list(educ = c(mean(mroz$educ, na.rm=TRUE))), variables = "educ")
+margins(probit, at = list(motheduc = c(mean(mroz$motheduc, na.rm=TRUE))), variables = "motheduc")
 
 ```
 
@@ -331,11 +404,11 @@ library(sjPlot)
 library(ggplot2)
 
 #here's educ
-plot_model(logit, type = "pred", terms = "educ")
-plot_model(probit, type = "pred", terms = "educ")
+plot_model(logit, type = "eff", terms = "motheduc")
+plot_model(probit, type = "eff", terms = "motheduc")
 
 #here's experience (and note that this is a squared term)
-plot_model(logit, type = "pred", terms = "exper")
+plot_model(logit, type = "eff", terms = "exper")
 ```
 
 
@@ -343,8 +416,8 @@ We can also do Logit and Probit in a panel data setting.
 ```{r}
 library(foreign) #this let's you import stata data directly into R
 
-union <- read.dta("http://data.princeton.edu/wws509/datasets/union.dta")
-fe <- clogit(union ~ age + grade + not_smsa + south + southXt + strata(idcode), data = union)
+#union <- read.dta("http://data.princeton.edu/wws509/datasets/union.dta")
+#fe <- clogit(union ~ age + grade + not_smsa + south + southXt + strata(idcode), data = union)
 
 
 ```
